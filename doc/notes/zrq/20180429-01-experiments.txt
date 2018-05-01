@@ -1,0 +1,151 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2018 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#  
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+    Lua programming language
+    https://www.lua.org/about.html
+    https://en.wikipedia.org/wiki/Lua_(programming_language)
+
+
+
+#----------------------------------------------------------------
+# Build our firmware image. 
+# https://nodemcu-build.com/index.php
+
+    Your NodeMCU custom build finished successfully. You may now download the firmware:
+    - float: http://nodemcu-build.com/builds/nodemcu-master-9-modules-2018-04-29-16-54-32-float.bin
+    - integer: http://nodemcu-build.com/builds/nodemcu-master-9-modules-2018-04-29-16-54-32-integer.bin
+
+    This was built against the master branch and includes the following modules: file, gpio, http, i2c, net, node, tmr, uart, wifi.
+    The files are guaranteed to be available for download for 24h.
+
+#----------------------------------------------------------------
+# Install the esptool bootloader utility.
+# http://nodemcu.readthedocs.io/en/master/en/flash/
+# https://github.com/espressif/esptool
+#[user@desktop]
+
+    sudo pip install esptool
+
+    esptool.py -h
+
+#----------------------------------------------------------------
+# Erase the existing flash contents
+#[user@desktop]
+
+    sudo esptool.py \
+        --port /dev/ttyUSB0 \
+        read_flash_status
+
+        esptool.py v2.3.1
+        Connecting....
+        Detecting chip type... ESP8266
+        Chip is ESP8266EX
+        Features: WiFi
+        Uploading stub...
+        Running stub...
+        Stub running...
+        Status value: 0x0000
+        Hard resetting via RTS pin...
+
+    sudo esptool.py \
+        --port /dev/ttyUSB0 \
+        flash_id
+
+        esptool.py v2.3.1
+        Connecting....
+        Detecting chip type... ESP8266
+        Chip is ESP8266EX
+        Features: WiFi
+        Uploading stub...
+        Running stub...
+        Stub running...
+        Manufacturer: c2
+        Device: 2516
+        Detected flash size: 4MB
+        Hard resetting via RTS pin...
+
+    sudo esptool.py \
+        --port /dev/ttyUSB0 \
+        erase_flash
+
+        esptool.py v2.3.1
+        Connecting....
+        Detecting chip type... ESP8266
+        Chip is ESP8266EX
+        Features: WiFi
+        Uploading stub...
+        Running stub...
+        Stub running...
+        Erasing flash (this may take a while)...
+        Chip erase completed successfully in 9.2s
+        Hard resetting via RTS pin...
+
+    sudo esptool.py \
+        --port /dev/ttyUSB0 \
+        write_flash \
+        0x00000 \
+        ~/Downloads/nodemcu-master-9-modules-2018-04-29-16-54-32-integer.bin
+
+        esptool.py v2.3.1
+        Connecting....
+        Detecting chip type... ESP8266
+        Chip is ESP8266EX
+        Features: WiFi
+        Uploading stub...
+        Running stub...
+        Stub running...
+        Configuring flash size...
+        Auto-detected Flash size: 4MB
+        Flash params set to 0x0240
+        Compressed 410112 bytes to 264530...
+        Wrote 410112 bytes (264530 compressed) at 0x00000000 in 23.4 seconds (effective 140.5 kbit/s)...
+        Hash of data verified.
+
+        Leaving...
+        Hard resetting via RTS pin...
+
+#----------------------------------------------------------------
+# Install the nodeMcu code uploader
+#[user@desktop]
+
+    sudo pip install nodemcu-uploader
+
+    nodemcu-uploader -h
+
+
+#----------------------------------------------------------------
+# Install a hello world example ..
+#[user@desktop]
+
+    sudo nodemcu-uploader \
+        --port /dev/ttyUSB0 \
+        file list
+
+        opening port /dev/ttyUSB0 with 115200 baud
+        Listing files
+        for key,value in pairs(file.list()) do print(key,value) end
+
+
+
+
+
+
