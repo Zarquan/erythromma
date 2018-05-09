@@ -1,0 +1,368 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2018 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#  
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+
+https://www.kickstarter.com/projects/214379695/micropython-on-the-esp8266-beautifully-easy-iot/description
+
+
+
+#----------------------------------------------------------------
+# Download our firmware image. 
+# http://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/intro.html
+#[user@desktop]
+
+    pushd projects/metagrid/erythromma
+
+        pushd tmp
+    
+            wget http://micropython.org/resources/firmware/esp8266-20171101-v1.9.3.bin
+
+        popd
+
+#----------------------------------------------------------------
+# Check device permissions.
+#[user@desktop]
+
+    ls -al /dev/ttyUSB0
+
+        crw-rw----. 1 root dialout 188, 0 May  9 04:08 /dev/ttyUSB0
+
+    sudo chmod a+rw /dev/ttyUSB0
+
+    ls -al /dev/ttyUSB0
+
+        crw-rw-rw-. 1 root dialout 188, 0 May  9 04:08 /dev/ttyUSB0
+
+#----------------------------------------------------------------
+# Install the esptool bootloader utility.
+# http://nodemcu.readthedocs.io/en/master/en/flash/
+# https://github.com/espressif/esptool
+#[user@desktop]
+
+    sudo pip install esptool
+
+    esptool.py -h
+
+#----------------------------------------------------------------
+# Erase the existing flash contents
+#[user@desktop]
+
+    esptool.py \
+        --port /dev/ttyUSB0 \
+        read_flash_status
+
+        esptool.py v2.3.1
+        Connecting....
+        Detecting chip type... ESP8266
+        Chip is ESP8266EX
+        Features: WiFi
+        Uploading stub...
+        Running stub...
+        Stub running...
+        Status value: 0x0000
+        Hard resetting via RTS pin...
+
+    esptool.py \
+        --port /dev/ttyUSB0 \
+        flash_id
+
+        esptool.py v2.3.1
+        Connecting....
+        Detecting chip type... ESP8266
+        Chip is ESP8266EX
+        Features: WiFi
+        Uploading stub...
+        Running stub...
+        Stub running...
+        Manufacturer: c2
+        Device: 2516
+        Detected flash size: 4MB
+        Hard resetting via RTS pin...
+
+    esptool.py \
+        --port /dev/ttyUSB0 \
+        erase_flash
+
+        esptool.py v2.3.1
+        Connecting....
+        Detecting chip type... ESP8266
+        Chip is ESP8266EX
+        Features: WiFi
+        Uploading stub...
+        Running stub...
+        Stub running...
+        Erasing flash (this may take a while)...
+        Chip erase completed successfully in 9.2s
+        Hard resetting via RTS pin...
+
+#----------------------------------------------------------------
+# Install the MicroPython firmware
+# http://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/intro.html
+#[user@desktop]
+
+    esptool.py \
+        --port /dev/ttyUSB0 \
+        write_flash \
+        0x00000 \
+        tmp/esp8266-20171101-v1.9.3.bin
+
+        esptool.py v2.3.1
+        Connecting....
+        Detecting chip type... ESP8266
+        Chip is ESP8266EX
+        Features: WiFi
+        Uploading stub...
+        Running stub...
+        Stub running...
+        Configuring flash size...
+        Auto-detected Flash size: 4MB
+        Flash params set to 0x0040
+        Compressed 600888 bytes to 392073...
+        Wrote 600888 bytes (392073 compressed) at 0x00000000 in 34.6 seconds (effective 138.8 kbit/s)...
+        Hash of data verified.
+
+        Leaving...
+        Hard resetting via RTS pin...
+
+
+#----------------------------------------------------------------
+# Test the Python REPL prompt
+# http://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/repl.html
+#[user@desktop]
+
+    minicom \
+        --device /dev/ttyUSB0
+
+        Welcome to minicom 2.7
+
+        OPTIONS: I18n 
+        Compiled on Jun 17 2015, 20:54:53.
+        Port /dev/ttyUSB0, 00:59:20
+
+        Press CTRL-A Z for help on special keys
+
+        >>> 
+        >>> print('hello esp8266!')
+        hello esp8266!
+        >>> 
+
+#----------------------------------------------------------------
+# Test the GPIO pins
+# https://dziadalnfpolx.cloudfront.net/blog/wp-content/uploads/2015/09/esp8266-nodemcu-dev-kit-v3-pins.jpg
+#[user@esp8266]
+
+import machine
+pin = machine.Pin(16, machine.Pin.OUT)
+pin.on()
+pin.off()
+
+
+def toggle(p):
+    p.value(not p.value())
+    
+toggle(pin)
+toggle(pin)
+
+import time
+while True:
+    toggle(pin)
+    time.sleep_ms(500)
+
+#----------------------------------------------------------------
+# Test the filesystem
+# http://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/filesystem.html
+#[user@esp8266]
+
+import os
+os.listdir()
+
+    ['boot.py']
+
+#----------------------------------------------------------------
+# Test the wifi network
+# http://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/network_basics.html
+#[user@esp8266]
+
+import network
+st_if = network.WLAN(network.STA_IF)
+ap_if = network.WLAN(network.AP_IF)
+
+st_if.active()
+False
+
+ap_if.active()
+True
+
+#----------------------------------------------------------------
+# Connect to our wifi network
+# http://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/network_basics.html
+#[user@esp8266]
+
+ap_if.active(False)
+
+st_if.active(True)
+#7 ets_task(4020ed88, 28, 3fff9fb0, 10)
+
+st_if.connect('ssid', 'password')
+st_if.isconnected()
+True
+
+st_if.ifconfig()
+('10.6.0.69', '255.255.0.0', '10.6.0.1', '10.6.0.1')
+
+#----------------------------------------------------------------
+# Test the wifi network
+# http://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/network_tcp.html
+#[user@esp8266]
+
+import socket
+socket.getaddrinfo("data.metagrid.co.uk", 23)
+
+[(2, 1, 0, '', ('178.79.157.93', 23))]
+
+info = socket.getaddrinfo("towel.blinkenlights.nl", 23)
+addr = info[0][-1]
+
+s = socket.socket()
+s.connect(addr)
+
+while True:
+  data = s.recv(500)
+  print(str(data, 'utf8'), end='')
+
+#----------------------------------------------------------------
+# Test the I2C interface (D1,D2)
+# http://docs.micropython.org/en/latest/esp8266/library/machine.I2C.html
+# https://www.esp8266.com/viewtopic.php?f=13&t=10374
+#[user@esp8266]
+
+import machine
+machine.reset()
+
+from machine import Pin
+from machine import I2C
+
+scl = Pin(5) # D1 -> p14
+sda = Pin(4) # D2 -> p15
+
+myi2c = I2C(-1, scl, sda, freq=10000)
+myi2c.scan()
+[]
+
+#
+# Fails - retest with nightly ?
+
+#----------------------------------------------------------------
+# Test the I2C interface (D6,D7)
+# https://github.com/micropython/micropython/issues/3555
+#[user@esp8266]
+
+import machine
+machine.reset()
+
+from machine import Pin
+from machine import I2C
+
+scl = Pin(12) # D6 -> p14
+sda = Pin(13) # D7 -> p15
+
+myi2c = I2C(-1, scl, sda, freq=10000)
+myi2c.scan()
+[56]
+
+myi2c.writeto(56, bytes((0,)))
+1
+
+myi2c.writeto(56, bytes((255,)))
+1
+
+myi2c.readfrom(56,1)
+b'\xff'
+
+#
+# Works for both input and putput.
+#
+
+#----------------------------------------------------------------
+# Exit Minicom
+#[user@esp8266]
+
+    Ctrl-A X
+
+#----------------------------------------------------------------
+# Test the rshell interface
+# https://cdn-learn.adafruit.com/downloads/pdf/micropython-basics-load-files-and-run-code.pdf
+# https://github.com/dhylands/rshell
+# https://forum.micropython.org/viewtopic.php?t=708&start=20#p19715
+#[user@desktop]
+
+    sudo pip3 install rshell
+
+    rshell \
+        --buffer-size 32 \
+        --port /dev/ttyUSB0
+
+        boards
+
+            pyboard @ /dev/ttyUSB0 connected Dirs: /boot.py /pyboard/boot.py
+
+        ls /pyboard/
+
+            boot.py
+
+        ls /pyboard/boot.py
+
+            /pyboard/boot.py
+
+        cat /pyboard/boot.py
+        cp /pyboard/boot.py tmp
+
+
+cat >> tmp/boot.py << EOF
+
+import network
+ap_if = network.WLAN(network.AP_IF)
+ap_if.active(False)
+
+st_if = network.WLAN(network.STA_IF)
+st_if.active(True)
+st_if.connect('ssid', 'password')
+
+EOF
+
+        cp tmp/boot.py /pyboard
+        cat /pyboard/boot.py
+
+
+
+
+
+    
+
+
+
+    
+
+
+
+
+
