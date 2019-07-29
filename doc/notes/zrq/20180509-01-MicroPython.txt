@@ -12,7 +12,7 @@
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-#  
+#
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   </meta:licence>
@@ -26,14 +26,14 @@ https://www.kickstarter.com/projects/214379695/micropython-on-the-esp8266-beauti
 
 
 #----------------------------------------------------------------
-# Download our firmware image. 
+# Download our firmware image.
 # http://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/intro.html
 #[user@desktop]
 
     pushd projects/metagrid/erythromma
 
         pushd tmp
-    
+
             wget http://micropython.org/resources/firmware/esp8266-20171101-v1.9.3.bin
 
         popd
@@ -61,6 +61,7 @@ https://www.kickstarter.com/projects/214379695/micropython-on-the-esp8266-beauti
     sudo pip install esptool
 
     esptool.py -h
+
 
 #----------------------------------------------------------------
 # Erase the existing flash contents
@@ -154,16 +155,17 @@ https://www.kickstarter.com/projects/214379695/micropython-on-the-esp8266-beauti
 
         Welcome to minicom 2.7
 
-        OPTIONS: I18n 
+        OPTIONS: I18n
         Compiled on Jun 17 2015, 20:54:53.
         Port /dev/ttyUSB0, 00:59:20
 
         Press CTRL-A Z for help on special keys
 
-        >>> 
+        >>>
         >>> print('hello esp8266!')
         hello esp8266!
-        >>> 
+        >>>
+
 
 #----------------------------------------------------------------
 # Test the GPIO pins
@@ -178,7 +180,7 @@ pin.off()
 
 def toggle(p):
     p.value(not p.value())
-    
+
 toggle(pin)
 toggle(pin)
 
@@ -186,6 +188,7 @@ import time
 while True:
     toggle(pin)
     time.sleep_ms(500)
+
 
 #----------------------------------------------------------------
 # Test the filesystem
@@ -196,6 +199,7 @@ import os
 os.listdir()
 
     ['boot.py']
+
 
 #----------------------------------------------------------------
 # Test the wifi network
@@ -211,6 +215,7 @@ False
 
 ap_if.active()
 True
+
 
 #----------------------------------------------------------------
 # Connect to our wifi network
@@ -228,6 +233,7 @@ True
 
 st_if.ifconfig()
 ('10.6.0.69', '255.255.0.0', '10.6.0.1', '10.6.0.1')
+
 
 #----------------------------------------------------------------
 # Test the wifi network
@@ -249,6 +255,7 @@ while True:
   data = s.recv(500)
   print(str(data, 'utf8'), end='')
 
+
 #----------------------------------------------------------------
 # Test the I2C interface (D1,D2)
 # http://docs.micropython.org/en/latest/esp8266/library/machine.I2C.html
@@ -268,8 +275,6 @@ myi2c = I2C(-1, scl, sda, freq=10000)
 myi2c.scan()
 []
 
-#
-# Fails - retest with nightly ?
 
 #----------------------------------------------------------------
 # Test the I2C interface (D6,D7)
@@ -302,11 +307,13 @@ b'\xff'
 # Works for both input and putput.
 #
 
+
 #----------------------------------------------------------------
 # Exit Minicom
 #[user@esp8266]
 
     Ctrl-A X
+
 
 #----------------------------------------------------------------
 # Test the rshell interface
@@ -356,11 +363,11 @@ EOF
 
 
 
-    
 
 
 
-    
+
+
 
 
 

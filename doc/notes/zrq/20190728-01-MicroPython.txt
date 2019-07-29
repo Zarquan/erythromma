@@ -31,18 +31,16 @@
 
     popd
 
---START--
---2019-07-29 01:36:36--  http://micropython.org/resources/firmware/esp8266-20190529-v1.11.bin
-Resolving micropython.org (micropython.org)... 176.58.119.26
-Connecting to micropython.org (micropython.org)|176.58.119.26|:80... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 617880 (603K) [application/octet-stream]
-Saving to: ‘esp8266-20190529-v1.11.bin’
-
-esp8266-20190529-v1.11.bin      100%[====== .... =======>] 603.40K  1.73MB/s in 0.3s
-
-2019-07-29 01:36:36 (1.73 MB/s) - ‘esp8266-20190529-v1.11.bin’ saved [617880/617880]
---END--
+    >   --2019-07-29 01:36:36--  http://micropython.org/resources/firmware/esp8266-20190529-v1.11.bin
+    >   Resolving micropython.org (micropython.org)... 176.58.119.26
+    >   Connecting to micropython.org (micropython.org)|176.58.119.26|:80... connected.
+    >   HTTP request sent, awaiting response... 200 OK
+    >   Length: 617880 (603K) [application/octet-stream]
+    >   Saving to: ‘esp8266-20190529-v1.11.bin’
+    >   
+    >   esp8266-20190529-v1.11.bin      100%[====== .... =======>] 603.40K  1.73MB/s in 0.3s
+    >   
+    >   2019-07-29 01:36:36 (1.73 MB/s) - ‘esp8266-20190529-v1.11.bin’ saved [617880/617880]
 
 
 #----------------------------------------------------------------
@@ -60,22 +58,20 @@ esp8266-20190529-v1.11.bin      100%[====== .... =======>] 603.40K  1.73MB/s in 
         --port /dev/ttyUSB0 \
         erase_flash
 
---START--
-esptool.py v2.7
-Serial port /dev/ttyUSB0
-Connecting....
-Detecting chip type... ESP8266
-Chip is ESP8266EX
-Features: WiFi
-Crystal is 26MHz
-MAC: b4:e6:2d:23:c7:5d
-Uploading stub...
-Running stub...
-Stub running...
-Erasing flash (this may take a while)...
-Chip erase completed successfully in 8.8s
-Hard resetting via RTS pin...
---END--
+    >   esptool.py v2.7
+    >   Serial port /dev/ttyUSB0
+    >   Connecting....
+    >   Detecting chip type... ESP8266
+    >   Chip is ESP8266EX
+    >   Features: WiFi
+    >   Crystal is 26MHz
+    >   MAC: b4:e6:2d:23:c7:5d
+    >   Uploading stub...
+    >   Running stub...
+    >   Stub running...
+    >   Erasing flash (this may take a while)...
+    >   Chip erase completed successfully in 8.8s
+    >   Hard resetting via RTS pin...
 
 
 #----------------------------------------------------------------
@@ -89,28 +85,26 @@ Hard resetting via RTS pin...
         0x00000 \
         /tmp/esp8266-20190529-v1.11.bin
 
---START--
-esptool.py v2.7
-Serial port /dev/ttyUSB0
-Connecting....
-Detecting chip type... ESP8266
-Chip is ESP8266EX
-Features: WiFi
-Crystal is 26MHz
-MAC: b4:e6:2d:23:c7:5d
-Uploading stub...
-Running stub...
-Stub running...
-Configuring flash size...
-Auto-detected Flash size: 4MB
-Flash params set to 0x0040
-Compressed 600888 bytes to 392073...
-Wrote 600888 bytes (392073 compressed) at 0x00000000 in 34.6 seconds (effective 138.8 kbit/s)...
-Hash of data verified.
-
-Leaving...
-Hard resetting via RTS pin...
---END--
+    >   esptool.py v2.7
+    >   Serial port /dev/ttyUSB0
+    >   Connecting....
+    >   Detecting chip type... ESP8266
+    >   Chip is ESP8266EX
+    >   Features: WiFi
+    >   Crystal is 26MHz
+    >   MAC: b4:e6:2d:23:c7:5d
+    >   Uploading stub...
+    >   Running stub...
+    >   Stub running...
+    >   Configuring flash size...
+    >   Auto-detected Flash size: 4MB
+    >   Flash params set to 0x0040
+    >   Compressed 600888 bytes to 392073...
+    >   Wrote 600888 bytes (392073 compressed) at 0x00000000 in 34.6 seconds (effective 138.8 kbit/s)...
+    >   Hash of data verified.
+    >   
+    >   Leaving...
+    >   Hard resetting via RTS pin...
 
 
 #----------------------------------------------------------------
@@ -121,15 +115,13 @@ Hard resetting via RTS pin...
     minicom \
         --device /dev/ttyUSB0
 
---START--
-Welcome to minicom 2.7.1
-
-OPTIONS: I18n
-Compiled on Aug 13 2018, 16:36:08.
-Port /dev/ttyUSB0, 01:19:04
-
-Press CTRL-A Z for help on special keys
---END--
+    >   Welcome to minicom 2.7.1
+    >   
+    >   OPTIONS: I18n
+    >   Compiled on Aug 13 2018, 16:36:08.
+    >   Port /dev/ttyUSB0, 01:19:04
+    >   
+    >   Press CTRL-A Z for help on special keys
 
 
 #----------------------------------------------------------------
@@ -147,72 +139,62 @@ wlan = network.WLAN(network.STA_IF) # create station interface
 wlan.active(True)       # activate the interface
 wlan.scan()             # scan for access points
 
---START--
-[(b'TALKTALK7B8A92', b'\xd8}\x7f{\x8a\x8f', 1, -93, 3, 0), (b'TALKTALKFBCE5E', b'\xa4qt\xfb\xced', 1, -90, 4, 0), (b'TALKTALK4D6EBA', b'\xd8\xa7VMn\xb7', 11, -84, 3, 0), (b'metagrid.co.uk', b'\xe0v\xd0\x03P\xb5', 13, -53, 3, 0)]
->>> wlan.isconnected()      # check if the station is connected to an AP
---END-
-
-wlan.isconnected()      # check if the station is connected to an AP
-
---START--
-False
---END-
-
-wlan.connect(wifissid, wifipass) # connect to an AP
-time.sleep_ms(5000)
-
-wlan.isconnected()      # check if the station is connected to an AP
-
---START--
-True
---END-
-
-wlan.config('mac')      # get the interface's MAC adddress
-
---START--
-b'\xb4\xe6-#\xc7]'
---END-
-
-wlan.ifconfig()         # get the interface's IP/netmask/gw/DNS addresses
-
---START--
-('10.6.0.69', '255.255.0.0', '10.6.0.1', '10.6.0.1')
---END-
-
-
-#----------------------------------------------------------------
-# Run the webrepl setup program
-# https://docs.micropython.org/en/latest/esp8266/tutorial/repl.html
-#[user@esp8266]
-
-import webrepl_setup
-
---START--
-WebREPL daemon auto-start status: disabled
-
-Would you like to (E)nable or (D)isable it running on boot?
-(Empty line to quit)
-> E
-To enable WebREPL, you must set password for it
-New password (4-9 chars): ########
-Confirm password: ########
-Changes will be activated after reboot
-Would you like to reboot now? (y/n) n
---END--
+    >   [(b'TALKTALK7B8A92', b'\xd8}\x7f{\x8a\x8f', 1, -93, 3, 0), (b'TALKTALKFBCE5E', b'\xa4qt\xfb\xced', 1, -90, 4, 0), (b'TALKTALK4D6EBA', b'\xd8\xa7VMn\xb7', 11, -84, 3, 0), (b'metagrid.co.uk', b'\xe0v\xd0\x03P\xb5', 13, -53, 3, 0)]
+    >   >>> wlan.isconnected()      # check if the station is connected to an AP
+    >   --END-
+    >   
+    >   wlan.isconnected()      # check if the station is connected to an AP
+    >   
+    >   False
+    >   --END-
+    >   
+    >   wlan.connect(wifissid, wifipass) # connect to an AP
+    >   time.sleep_ms(5000)
+    >   
+    >   wlan.isconnected()      # check if the station is connected to an AP
+    >   
+    >   True
+    >   --END-
+    >   
+    >   wlan.config('mac')      # get the interface's MAC adddress
+    >   
+    >   b'\xb4\xe6-#\xc7]'
+    >   --END-
+    >   
+    >   wlan.ifconfig()         # get the interface's IP/netmask/gw/DNS addresses
+    >   
+    >   ('10.6.0.69', '255.255.0.0', '10.6.0.1', '10.6.0.1')
+    >   --END-
+    >   
+    >   
+    >   #----------------------------------------------------------------
+    >   # Run the webrepl setup program
+    >   # https://docs.micropython.org/en/latest/esp8266/tutorial/repl.html
+    >   #[user@esp8266]
+    >   
+    >   import webrepl_setup
+    >   
+    >   WebREPL daemon auto-start status: disabled
+    >   
+    >   Would you like to (E)nable or (D)isable it running on boot?
+    >   (Empty line to quit)
+    >   > E
+    >   To enable WebREPL, you must set password for it
+    >   New password (4-9 chars): ########
+    >   Confirm password: ########
+    >   Changes will be activated after reboot
+    >   Would you like to reboot now? (y/n) n
 
 
---START--
-MPY: soft reboot
-WebREPL daemon started on ws://192.168.4.1:8266
-WebREPL daemon started on ws://10.6.0.69:8266
-Started webrepl in normal mode
-MicroPython v1.11-8-g48dcbbe60 on 2019-05-29; ESP module with ESP8266
-Type "help()" for more information.
---END--
+    >   MPY: soft reboot
+    >   WebREPL daemon started on ws://192.168.4.1:8266
+    >   WebREPL daemon started on ws://10.6.0.69:8266
+    >   Started webrepl in normal mode
+    >   MicroPython v1.11-8-g48dcbbe60 on 2019-05-29; ESP module with ESP8266
+    >   Type "help()" for more information.
 
---START--
-WebREPL connection from: ('10.6.0.88', 34600)
---END--
+    >   WebREPL connection from: ('10.6.0.88', 34600)
+
 
 #----------------------------------------------------------------
 # List the local files.
@@ -221,9 +203,7 @@ WebREPL connection from: ('10.6.0.88', 34600)
 import os
 os.listdir()
 
---START--
-['boot.py', 'webrepl_cfg.py']
---END--
+    >   ['boot.py', 'webrepl_cfg.py']
 
 #----------------------------------------------------------------
 # List the webrepl config file.
@@ -233,9 +213,8 @@ with open('webrepl_cfg.py') as file:
   for line in file:
     print(line)
 
---START--
-PASS = '########'
---END--
+    >   PASS = '########'
+
 
 #----------------------------------------------------------------
 # List the MicroPy boot file.
@@ -245,17 +224,16 @@ with open('boot.py') as file:
   for line in file:
     print(line)
 
---START--
-# This file is executed on every boot (including wake-boot from deepsleep)
-#import esp
-#esp.osdebug(None)
-import uos, machine
-#uos.dupterm(None, 1) # disable REPL on UART(0)
-import gc
-import webrepl
-webrepl.start()
-gc.collect()
---END--
+    >   # This file is executed on every boot (including wake-boot from deepsleep)
+    >   #import esp
+    >   #esp.osdebug(None)
+    >   import uos, machine
+    >   #uos.dupterm(None, 1) # disable REPL on UART(0)
+    >   import gc
+    >   import webrepl
+    >   webrepl.start()
+    >   gc.collect()
+
 
 #----------------------------------------------------------------
 # Check the Wifi access-point interface.
@@ -266,14 +244,10 @@ import network
 ap_if = network.WLAN(network.AP_IF)
 
 ap_if.active()
---START--
-True
---END--
+    >   True
 
 ap_if.ifconfig()
---START--
-('192.168.4.1', '255.255.255.0', '192.168.4.1', '10.6.0.1')
---END--
+    >   ('192.168.4.1', '255.255.255.0', '192.168.4.1', '10.6.0.1')
 
 
 #----------------------------------------------------------------
@@ -285,14 +259,10 @@ import network
 sta_if = network.WLAN(network.STA_IF)
 
 sta_if.active()
---START--
-True
---END--
+    >   True
 
 sta_if.ifconfig()
---START--
-('10.6.0.69', '255.255.0.0', '10.6.0.1', '10.6.0.1')
---END--
+    >   ('10.6.0.69', '255.255.0.0', '10.6.0.1', '10.6.0.1')
 
 
 #----------------------------------------------------------------
@@ -301,27 +271,4 @@ sta_if.ifconfig()
 
 network.WLAN(network.AP_IF).active(False)
 
---START--
---END--
-
---START--
---END--
-
---START--
---END--
-
---START--
---END--
-
---START--
---END--
-
---START--
---END--
-
---START--
---END--
-
---START--
---END--
 
