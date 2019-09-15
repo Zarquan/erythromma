@@ -1,0 +1,170 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2019 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+
+    # Eight bits of input.
+    # Eight bits of output.
+
+    # Eight data cells in array.
+
+
+#----------------------------------------------------------------
+# Fix USB device permissions.
+#[user@desktop]
+
+    sudo chmod a+rw /dev/ttyUSB0
+
+#----------------------------------------------------------------
+# Login using REPL via USB.
+#[user@desktop]
+
+    minicom \
+        --device /dev/ttyUSB0
+
+--START--
+Welcome to minicom 2.7.1
+
+OPTIONS: I18n
+Compiled on Aug 13 2018, 16:36:08.
+Port /dev/ttyUSB0, 19:57:39
+
+Press CTRL-A Z for help on special keys
+--END--
+
+
+#----------------------------------------------------------------
+# Reset the board.
+#[user@esp8266]
+
+    Ctrl^D
+
+--START--
+MPY: soft reboot
+WebREPL daemon started on ws://10.6.0.70:8266
+Started webrepl in normal mode
+MicroPython v1.11-8-g48dcbbe60 on 2019-05-29; ESP module with ESP8266
+Type "help()" for more information.
+--END--
+
+
+#----------------------------------------------------------------
+# Edit mode to paste our code.
+#[user@esp8266]
+
+    Ctrl^E
+
+--START--
+paste mode; Ctrl-C to cancel, Ctrl-D to finish
+===
+--END--
+
+class DataCell:
+
+  pokestep =  10
+  fadestep =   1
+  maxvalue = 100
+  minvalue = -10
+  midvalue =   0
+
+  def __init__(self):
+    self.value = self.midvalue
+
+  def value(self):
+    return self.value
+
+  def update(self, step):
+    print("update [{}][{}]".format(self.value, step))
+    if (step > 0):
+      if ((self.value + step) < self.maxvalue):
+        self.value += step
+      else:
+        self.value = self.maxvalue
+    if (step < 0):
+      if ((self.value + step) > self.minvalue):
+        self.value += step
+      else:
+        self.value = self.minvalue
+
+  def poke(self):
+    self.update(
+      self.pokestep
+      )
+
+  def fade(self):
+    if (self.value > self.midvalue):
+      self.update(
+        -1 * self.fadestep
+        )
+    if (self.value < self.midvalue):
+      self.update(
+        self.fadestep
+        )
+
+  def onezero(self):
+    if (self.value > self.midvalue):
+      return 0x01
+    else:
+      return 0x00
+
+
+import time
+import machine
+
+from machine import Pin
+from machine import I2C
+
+scl = Pin(12) # D6 -> p14
+sda = Pin(13) # D7 -> p15
+
+myi2c = I2C(-1, scl, sda, freq=10000)
+myi2c.scan()
+
+one = DataCell()
+two = DataCell()
+
+one.midvalue = 50
+one.fadestep =  1
+one.pokestep = 10
+
+while True:
+
+    input = myi2c.readfrom(56,1)[0] & 0x0F
+    if (input & 0x01):
+        one.poke()
+    else:
+        one.fade()
+
+    byte = one.onezero() << 4
+    byte = byte & 0xFF
+    byte = byte | 0x0F
+    byte = byte ^ 0xF0
+
+    fred = myi2c.writeto(
+        56,
+        bytes(
+            (byte,)
+            )
+        )
+
+    time.sleep_ms(500)
+
+

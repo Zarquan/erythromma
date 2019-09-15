@@ -1,0 +1,271 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2019 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+#----------------------------------------------------------------
+# Download our firmware image.
+# http://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/intro.html
+#[user@desktop]
+
+    pushd /tmp
+
+        wget http://micropython.org/resources/firmware/esp8266-20190529-v1.11.bin
+
+    popd
+
+    >   --2019-07-29 01:36:36--  http://micropython.org/resources/firmware/esp8266-20190529-v1.11.bin
+    >   Resolving micropython.org (micropython.org)... 176.58.119.26
+    >   Connecting to micropython.org (micropython.org)|176.58.119.26|:80... connected.
+    >   HTTP request sent, awaiting response... 200 OK
+    >   Length: 617880 (603K) [application/octet-stream]
+    >   Saving to: ‘esp8266-20190529-v1.11.bin’
+    >
+    >   esp8266-20190529-v1.11.bin      100%[====== .... =======>] 603.40K  1.73MB/s in 0.3s
+    >
+    >   2019-07-29 01:36:36 (1.73 MB/s) - ‘esp8266-20190529-v1.11.bin’ saved [617880/617880]
+
+
+#----------------------------------------------------------------
+# Fix USB device permissions.
+#[user@desktop]
+
+    sudo chmod a+rw /dev/ttyUSB0
+
+
+#----------------------------------------------------------------
+# Erase the existing flash contents
+#[user@desktop]
+
+    esptool.py \
+        --port /dev/ttyUSB0 \
+        erase_flash
+
+    >   esptool.py v2.7
+    >   Serial port /dev/ttyUSB0
+    >   Connecting....
+    >   Detecting chip type... ESP8266
+    >   Chip is ESP8266EX
+    >   Features: WiFi
+    >   Crystal is 26MHz
+    >   MAC: b4:e6:2d:23:c7:5d
+    >   Uploading stub...
+    >   Running stub...
+    >   Stub running...
+    >   Erasing flash (this may take a while)...
+    >   Chip erase completed successfully in 8.8s
+    >   Hard resetting via RTS pin...
+
+
+#----------------------------------------------------------------
+# Install the MicroPython firmware
+# http://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/intro.html
+#[user@desktop]
+
+    esptool.py \
+        --port /dev/ttyUSB0 \
+        write_flash \
+        0x00000 \
+        /tmp/esp8266-20190529-v1.11.bin
+
+    >   esptool.py v2.7
+    >   Serial port /dev/ttyUSB0
+    >   Connecting....
+    >   Detecting chip type... ESP8266
+    >   Chip is ESP8266EX
+    >   Features: WiFi
+    >   Crystal is 26MHz
+    >   MAC: b4:e6:2d:23:c7:5d
+    >   Uploading stub...
+    >   Running stub...
+    >   Stub running...
+    >   Configuring flash size...
+    >   Auto-detected Flash size: 4MB
+    >   Flash params set to 0x0040
+    >   Compressed 600888 bytes to 392073...
+    >   Wrote 600888 bytes (392073 compressed) at 0x00000000 in 34.6 seconds (effective 138.8 kbit/s)...
+    >   Hash of data verified.
+    >
+    >   Leaving...
+    >   Hard resetting via RTS pin...
+
+
+#----------------------------------------------------------------
+# Setup our secrets.
+#[user@desktop]
+
+    mkdir "/tmp/erythromma"
+
+    cat > /tmp/erythromma/webrepl_cfg.py << EOF
+PASS = 'Pengwols'
+EOF
+
+    cat > /tmp/erythromma/wifi_cfg.py << EOF
+WIFI_SSID = 'metagrid.co.uk'
+WIFI_PASS = 'KelticBlueBear::YuanRedCoat'
+EOF
+
+
+#----------------------------------------------------------------
+# Connect using rshell.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+    pushd "${ERYTHROMMA_CODE}/src/micropy"
+
+        rshell \
+            --buffer-size 32 \
+            --port /dev/ttyUSB0
+
+    >   Using buffer-size of 32
+    >   Connecting to /dev/ttyUSB0 (buffer-size 32)...
+    >   Trying to connect to REPL  connected
+    >   Testing if ubinascii.unhexlify exists ... Y
+    >   Retrieving root directories ... /boot.py/
+    >   Setting time ... Jul 29, 2019 03:00:41
+    >   Evaluating board_name ... pyboard
+    >   Retrieving time epoch ... Jan 01, 2000
+    >   Welcome to rshell. Use Control-D (or the exit command) to exit rshell.
+
+
+#----------------------------------------------------------------
+# Import the boot program and config files.
+#[user@esp8266]
+
+    cp boot.py /pyboard/boot.py
+
+    cp /tmp/erythromma/wifi_cfg.py /pyboard/wifi_cfg.py
+
+    cp /tmp/erythromma/webrepl_cfg.py /pyboard/webrepl_cfg.py
+
+
+#----------------------------------------------------------------
+# Exit the rshell.
+#[user@esp8266]
+
+    exit
+
+
+#----------------------------------------------------------------
+# Login using REPL via USB.
+#[user@desktop]
+
+    minicom \
+        --device /dev/ttyUSB0
+
+    >   Welcome to minicom 2.7.1
+    >
+    >   OPTIONS: I18n
+    >   Compiled on Aug 13 2018, 16:36:08.
+    >   Port /dev/ttyUSB0, 01:19:04
+    >
+    >   Press CTRL-A Z for help on special keys
+
+
+#----------------------------------------------------------------
+# Reset the board.
+#[user@esp8266]
+
+    Ctrl^D
+
+    >   MPY: soft reboot
+    >   WebREPL daemon started on ws://10.6.0.69:8266
+    >   Started webrepl in normal mode
+    >   MicroPython v1.11-8-g48dcbbe60 on 2019-05-29; ESP module with ESP8266
+    >   Type "help()" for more information.
+
+
+#----------------------------------------------------------------
+# Check the Wifi access-point interface.
+#[user@esp8266]
+
+import network
+
+ap_if = network.WLAN(network.AP_IF)
+
+ap_if.active()
+--START--
+False
+--END--
+
+ap_if.ifconfig()
+--START--
+('0.0.0.0', '0.0.0.0', '0.0.0.0', '10.6.0.1')
+--END--
+
+
+#----------------------------------------------------------------
+# Check the Wifi station interface.
+#[user@esp8266]
+
+import network
+
+sta_if = network.WLAN(network.STA_IF)
+
+sta_if.active()
+--START--
+True
+--END--
+
+sta_if.ifconfig()
+--START--
+('10.6.0.69', '255.255.0.0', '10.6.0.1', '10.6.0.1')
+--END--
+
+
+#----------------------------------------------------------------
+# Test the I2C interface.
+#[user@esp8266]
+
+import time
+import machine
+
+from machine import Pin
+from machine import I2C
+
+scl = Pin(12) # D6 -> p14
+sda = Pin(13) # D7 -> p15
+
+myi2c = I2C(-1, scl, sda, freq=10000)
+myi2c.scan()
+
+value = 0
+while True:
+  value  = value ^ 255
+  result = myi2c.writeto(56, bytes((value,)))
+  time.sleep_ms(5000)
+
+frog = 0xFF
+frog = myi2c.writeto(56, bytes((frog,)))
+while True:
+  print ("")
+  frog = myi2c.readfrom(56,1)[0]
+  frog = frog << 4
+  frog = frog & 0xFF
+  frog = frog | 0x0F
+  frog = frog ^ 0xF0
+  print (frog)
+  temp = myi2c.writeto(56, bytes((frog,)))
+  time.sleep_ms(1000)
+
+
+
+
+
