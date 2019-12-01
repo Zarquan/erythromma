@@ -114,12 +114,12 @@
     mkdir "/tmp/erythromma"
 
     cat > /tmp/erythromma/webrepl_cfg.py << EOF
-PASS = 'Pengwols'
+PASS = '$(secret 'erythromma.repl.pass')'
 EOF
 
     cat > /tmp/erythromma/wifi_cfg.py << EOF
-WIFI_SSID = 'metagrid.co.uk'
-WIFI_PASS = 'KelticBlueBear::YuanRedCoat'
+WIFI_SSID = '$(secret 'metagrid.wifi.ssid')'
+WIFI_PASS = '$(secret 'metagrid.wifi.pass')'
 EOF
 
 
