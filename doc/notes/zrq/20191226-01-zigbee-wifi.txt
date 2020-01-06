@@ -1,0 +1,284 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2019 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+
+
+    Different networks
+
+        WiFi
+        Zigbee
+        433MHz
+
+    Most of the applications and appliances use WiFi or Zigbee.
+
+    Best option for integrating WiFi is to use MQTT
+    http://mqtt.org/
+
+    "MQTT is a machine-to-machine (M2M)/"Internet of Things" connectivity protocol."
+
+    OpenSource integration service
+    https://www.home-assistant.io/
+
+    Zigbee2mqtt bridge links Zigbee to MQTT.
+    https://www.zigbee2mqtt.io/
+
+    CC2531 Zigbee2MQTT USB Zigbee Hub
+    USB stick Zigbee chip, integrates with Zigbee2mqtt
+    https://www.cc2531.com/product/cc2531-zigbee2mqtt/
+    £12.99
+
+        On order - 1x coordinator and 1x router
+
+
+    RaspBee
+    The Raspberry Pi Zigbee gateway
+    https://www.phoscon.de/en/raspbee/
+    https://www.amazon.co.uk/dp/B00E6300DO
+    £30.89
+
+        USB stick version
+        https://www.phoscon.de/en/conbee
+
+        Comes with it's own software, deCONZ, which aseems to be a binary blob.
+
+        REST service ontop of deCONZ
+        https://github.com/dresden-elektronik/deconz-rest-plugin
+
+        Docker container with deCONZ installed
+        https://github.com/dresden-elektronik/docker-deconz
+
+
+    Most people seem to be prefer CC2531 and Zigbee2MQTT, but it is more expensive than WiFi.
+    https://www.reddit.com/r/homeassistant/comments/akyr55/zigbee2mqtt_cc2531_vs_raspbee_premium_zigbee_addon/
+
+
+    Tasmota
+        "Tasmota is an alternative firmware for ESP8266 based devices like iTead Sonoff,
+        offering web and OTA (Over The Air) firmware updates and sensors support, which
+        can be controlled under Http, Serial, MQTT and KNX, allowing for an easy integration
+        with Smart Home Systems."
+    https://tasmota.github.io/
+    https://github.com/arendst/Tasmota
+
+        Firmware to convert ESP8266 based devices to use MQTT.
+        Cool, but why not use Zigbee devices to start with ?
+
+        Because in cases like SONOFF, the WiFi version is cheaper and easier to get.
+
+    SONOFF basic (WiFi)
+    https://www.amazon.co.uk/Wireless-Universal-Automation-Assistant-Compatible/dp/B06WWNBD3Y
+    £8.99
+
+    SONOFF basic (Zigbee)
+    https://www.amazon.co.uk/SONOFF-BASICZBR3-Compatible-Control-SmartThings/dp/B0813DJ477
+    £13.99
+
+    SONOFF 2way (WiFi)
+    https://www.amazon.co.uk/Compatible-Control-Function-Support-Required/dp/B07TRSWY23
+    £10.99
+
+    Trailing edge dimmer (Zigbee)
+    https://www.amazon.co.uk/Zigbee-Dimmer-Switch-Compatible-Echo/dp/B07XPJ22W3
+    £36.99
+
+    GIDERWEL Home Smart Zigbee RGBCCT LED Strip Controller
+    https://www.amazon.co.uk/dp/B07QBXLXLS/ref=emc_b_5_t
+    £28.99
+
+    GIDERWEL Smart Wireless RGBW LED WiFi Controller for LED Light Strips
+    https://www.amazon.co.uk/dp/B07Q4RT4F6/ref=emc_b_5_t?th=1
+    £10.99
+
+        The WiFi version looks similar to the MagicHome controller on the Tasmota compatible list.
+        https://templates.blakadder.com/magichome_ZJ-WFMN-A_RGBW.html
+        Guess is we could buy the WiFi version, and use Tasmota to control it.
+
+    AjaxOnline WiFi dimmable GU10 bulbs (pack of 4)
+    https://www.amazon.co.uk/Spotlight-Compatible-Tunable-Dimmable-Ambiance/dp/B07MK3V18M/
+    Listed on the Tasmota compatible list.
+    £42.97
+
+    LINGANZH WiFi Smart Bulb
+    https://www.amazon.co.uk/LINGANZH-Dimmable-Multi-color-Smartphone-Required/dp/B07FP3ZP1L
+    Listed on the Tasmota compatible list.
+    £9.98
+
+    BrizLabs GU10 LED WiFi Multicolor Dimmable (2 pack)
+    https://www.ebay.co.uk/i/323965871882
+    Listed on the Tasmota compatible list.
+    £14.90
+
+    Zigbee ZLL Multicolor RGBW LED Bulb
+    https://www.amazon.co.uk/Zigbee-Million-Colour-Changing-Philips/dp/B07QWSLDWR/
+    £24.99
+
+    HEIMAN Zigbee Fire Smoke Alarm Detector HS1SA EN14604 approved
+    https://www.amazon.co.uk/HEIMAN-Zigbee-Detector-EN14604-approved/dp/B078K6MM4F
+    £33.00
+
+
+
+    Innr GU10 Smart LED Spot, Tunable White Ambiance Light
+    https://www.amazon.co.uk/dp/B074N6P92Y
+    £24.95
+
+    ... and lots more
+
+    Trust ZigBee Dimmable LED GU10 Spot - ZLED-G2705
+    https://www.50five.co.uk/trust-zigbee-dimmable-led-gu10-spot-zled-g2705.html
+    £17.99
+
+    AC100-240V Zigbee bridge LED RGBW 5W GU10 spotlight
+    https://www.alibaba.com/product-detail/AC100-240V-Zigbee-bridge-LED-RGBW_60783391796.html?spm=a2700.7724857.normalList.122.70555771d3rmXL
+    US$11.50 - US$13.00 (min 10 units)
+
+    Zigbee downlights
+    https://www.alibaba.com/product-detail/Zigbee-bridge-LED-RGBW-5W-GU10_60816758475.html
+
+    ----------------
+
+    Why are Zigbee hardware modules so expensive?
+    https://iot.stackexchange.com/questions/2906/why-are-zigbee-hardware-modules-so-expensive
+
+    ZigBee® Open Source Stack
+    http://zboss.dsr-wireless.com/
+
+    Adafruit XBee Module
+    https://www.amazon.co.uk/Adafruit-XBee-Module-Antenna-ADA968/dp/B01BMRTKT6/r
+
+    Digi International's XBee® radio series
+    https://www.digikey.com/en/product-highlight/d/digi-intl/digi-xbee3-zigbee-3?
+
+    ----------------
+
+    Wireless Gecko Series
+    https://www.cnx-software.com/2019/04/26/wireless-gecko-series-2-mcu-extended-range-hw-security/
+
+    EFR32MG21A010F1024IM32
+    https://www.silabs.com/wireless/zigbee/efr32mg21-series-2-socs/device.efr32mg21a010f1024im32
+    https://uk.farnell.com/silicon-labs/efr32mg21a010f1024im32-br/mighty-gecko-10db-mesh-multi-protocol/dp/3013853
+    £4.43
+
+    MGM210L Mighty Gecko Lighting Module
+    http://www.farnell.com/datasheets/2865974.pdf
+
+    MGM210LA22JNF2 -  Lighting Module
+    https://uk.farnell.com/silicon-labs/mgm210la22jnf2/lighting-module-2mbps-3-8v/dp/3249880RL
+    £7.40
+
+    MGM111A256V2 -  Zigbee Networking Module
+    https://uk.farnell.com/silicon-labs/mgm111a256v2/zigbee-networking-module-250kbpz/dp/2687547RL
+    £9.32
+
+    ----------------
+
+    Teardown of a Philips HUE LED Lightbulb with #Zigbee and ATmega2564 AVR
+    https://blog.adafruit.com/2016/06/14/teardown-of-a-philips-hue-led-lightbulb-with-zigbee-and-atmega2564-avr-iot-iotuesday/
+
+    Philips HUE (2016) LED Bulb Teardown
+    https://www.youtube.com/watch?v=4L1ZqvQ2qVU
+
+    ATmega2564RFR2
+    https://www.microchip.com/wwwproducts/en/ATmega2564RFR2
+
+    8-bitMicrocontroller with Low Power 2.4GHz Transceiver for ZigBee and IEEE 802.15.4
+    http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-42073-MCU_Wireless-ATmega2564RFR2-ATmega1284RFR2-ATmega644RFR2_Summary_Datasheet.pdf
+
+    AT13519: ATSAMR21 LED Driver with ZigBeeLight Link – Firmware User Guide
+    http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-42483-ATSAMR21-LED-Driver-with-ZigBee-Light-Link_User%20Guide_AT13519.pdf
+
+    ----------------
+
+    Amazon order  26 Dec 2019
+
+        Innr Smart LED Spot White GU10 (Zigbee)
+        https://www.amazon.co.uk/gp/product/B07M9CQ5X3/
+        £11.99
+
+
+    ----------------
+
+    E-Bay order 28 Dec 2019
+    https://www.ebay.co.uk/vod/FetchOrderDetails?itemid=223701196997&transId=2338931525012&_trksid=p2060353.m2749.l2673
+
+        Xiaomi Aqara Wall Switch Light Remote Control ZiGBee
+        https://www.ebay.co.uk/itm/Xiaomi-Aqara-Wall-Switch-Light-Remote-Control-ZiGBee-Wifi-Double-Single-Key-ZX/223739200631
+        Order number: 04-04340-86799
+
+        Xiaomi Aqara Smart Motion Detect Sensor
+        https://www.ebay.co.uk/itm/Xiaomi-Aqara-Smart-Motion-Detect-Sensor-Vibration-Home-Real-Time-Safety-MN/223701196997
+        Order number: 04-04340-86799
+
+        Aqara Smart Temperature Humidity Sensor ZigBee
+        https://www.ebay.co.uk/itm/Aqara-Smart-Temperature-Humidity-Sensor-ZigBee-Wifi-Wireless-Work-With-Xiaomi-VE/153711461532
+        Order number: 04-04340-86800
+
+        Zigbee 5W LED Dimmer E27 GU10 RGBW WW/CW Spotlight
+        https://www.ebay.co.uk/itm/Zigbee-5W-LED-Dimmer-E27-GU10-RGBW-WW-CW-Spotlight-link-Bulb-fr-Amazon-echo-plus/263998523999
+        Order number: 04-04340-86798
+
+        Xiaomi Aqara Smart Home Zigbee Wireless Switch Touch Button
+        https://www.ebay.co.uk/itm/Xiaomi-Aqara-Smart-Home-Zigbee-Wireless-Switch-Touch-Button-Mini-Door-Bell/163784566447
+        Order number: 04-04340-86797
+
+    ----------------
+
+    Crompton LED 5W SMART GU10 Dimmable Warm White + Colour
+    https://www.simplyled.co.uk/product/crompton-led-5w-smart-gu10-dimmable-warm-white-rgb/
+
+        "Crompton Lamps LED smart lighting range features a built-in TUYA wifi chip in each light bulb,
+        allowing direct connection to your home WIFI with no extra bridge required, making installation
+        cheaper and easier than other Smart lighting ranges."
+
+    TUYA-CONVERT
+    https://github.com/ct-Open-Source/tuya-convert
+
+        "A collection of scripts to flash Tuya IoT devices to alternative firmwares"
+
+        "VTRUST and the German tech magazine c't decided to work together. Since reflashing
+        devices using the ESP8266/85 is widespread among DIY smart home enthusiasts, we
+        wanted to provide an easy way for everyone to free their devices from the cloud
+        without the need for a soldering iron."
+
+    Tuya OTA
+    https://github.com/arendst/Tasmota/wiki/Tuya-OTA
+
+        "A Chinese company named Tuya offers a free-to-brand turnkey smart home solution to anyone.
+        Using their offer is dead-simple, since everything can be done by clicking through the Tuya
+        web page, from choosing your pre-designed products or pre-programmed wifi-modules (mostly ESP8266)
+        to building your own app."
+
+        "Tuya devices are sold under numerous brand names but they're all identifiable by the
+        fact that they connect with these phone apps: "Smart Life" or "Tuya Smart".
+        They incorporate different types of Tuya Wi-Fi modules internally."
+
+
+    Smart Home - Smart Hack
+    https://www.vtrust.de/en/35c3-2/
+    https://media.ccc.de/v/35c3-9723-smart_home_-_smart_hack
+    https://cdn.media.ccc.de/congress/2018/h264-hd/35c3-9723-deu-eng-spa-Smart_Home_-_Smart_Hack_hd.mp4
+
+
+
+
+
+

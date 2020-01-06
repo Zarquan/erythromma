@@ -1,0 +1,472 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2020 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+
+    #
+    # Configure the touch switch
+
+Xiaomi WXKG01LM button
+https://www.zigbee2mqtt.io/devices/WXKG01LM.html
+
+    sensor:
+      - platform: "mqtt"
+        state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+        availability_topic: "zigbee2mqtt/bridge/state"
+        icon: "mdi:toggle-switch"
+        value_template: "{{ value_json.click }}"
+
+    sensor:
+      - platform: "mqtt"
+        state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+        availability_topic: "zigbee2mqtt/bridge/state"
+        unit_of_measurement: "%"
+        device_class: "battery"
+        value_template: "{{ value_json.battery }}"
+
+    sensor:
+      - platform: "mqtt"
+        state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+        availability_topic: "zigbee2mqtt/bridge/state"
+        unit_of_measurement: "-"
+        value_template: "{{ value_json.linkquality }}
+
+
+Xiaomi WXKG03LM switch
+https://www.zigbee2mqtt.io/devices/WXKG03LM.html
+
+    sensor:
+      - platform: "mqtt"
+        state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+        availability_topic: "zigbee2mqtt/bridge/state"
+        icon: "mdi:toggle-switch"
+        value_template: "{{ value_json.click }}"
+
+    sensor:
+      - platform: "mqtt"
+        state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+        availability_topic: "zigbee2mqtt/bridge/state"
+        unit_of_measurement: "%"
+        device_class: "battery"
+        value_template: "{{ value_json.battery }}"
+
+    sensor:
+      - platform: "mqtt"
+        state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+        availability_topic: "zigbee2mqtt/bridge/state"
+        icon: "mdi:gesture-double-tap"
+        value_template: "{{ value_json.action }}"
+
+    sensor:
+      - platform: "mqtt"
+        state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+        availability_topic: "zigbee2mqtt/bridge/state"
+        unit_of_measurement: "-"
+        value_template: "{{ value_json.linkquality }}"
+
+Xiaomi Motion detector
+https://www.zigbee2mqtt.io/devices/DJT11LM.html#sensitivity
+https://github.com/Koenkk/zigbee2mqtt/issues/295
+http://faire-ca-soi-meme.fr/domotique/2018/09/03/test-xiaomi-aqara-vibration-sensor/
+https://www.reddit.com/r/homeassistant/comments/c2ewqv/xiaomi_aqara_vibration_sensor_sensitivity/
+https://www.reddit.com/r/homeassistant/comments/c2ewqv/xiaomi_aqara_vibration_sensor_sensitivity/ermfj8c/
+https://www.zigbee2mqtt.io/information/mqtt_topics_and_message_structure.html#device-specific-commands
+
+    #
+    # Automation triggers
+    # https://www.home-assistant.io/docs/automation/trigger/
+    #
+    # Templating
+    # https://www.home-assistant.io/docs/configuration/templating/
+    #
+    # Automation templating
+    # https://www.home-assistant.io/docs/automation/templating/
+    #
+    # Automation examples
+    # https://github.com/CiquattroFPV/Homeassistant-Example-Config/blob/master/automations.yaml
+    #
+    # How to remove a device.
+    # https://github.com/Koenkk/zigbee2mqtt/issues/835
+    #
+    # Gledopto transition time.
+    # https://github.com/Koenkk/zigbee2mqtt/issues/1047
+    #
+    # Gledopto color_temp.
+    # https://github.com/Koenkk/zigbee2mqtt/pull/2616
+    # https://github.com/Koenkk/zigbee2mqtt/pull/2616/files
+    #
+    # Gledopto issues.
+    # https://github.com/Koenkk/zigbee2mqtt/issues/2447
+    #
+    # Zigbee2mqtt Gledopto config.
+    # https://www.zigbee2mqtt.io/devices/GL-S-007Z.html
+    # https://www.zigbee2mqtt.io/devices/GL-S-007ZS.html
+
+    # Zigbee2mqtt Gledopto config.
+    # https://github.com/Koenkk/zigbee-herdsman-converters/pull/176/files
+
+    #
+    # Zigbee2mqtt config
+    # https://www.zigbee2mqtt.io/information/configuration.html
+    #
+    # Zigbee2mqtt new devices
+    # https://www.zigbee2mqtt.io/how_tos/how_to_support_new_devices.html
+    #
+    # MQTT Explorer
+    # https://mqtt-explorer.com/
+    #
+
+
+# -----------------------------------------------------
+# Stop the HomeAssistant.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    docker stop "${hasstname:?}"
+
+    >   yboakith
+
+
+# -----------------------------------------------------
+# Add the specific device to HomeAssistant config.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    vi "${hasstdata:?}/configuration.yaml"
+
+    +   sensor:
+    +     - platform: "mqtt"
+    +       state_topic: "zigbee2mqtt/0x00158d0003614c58"
+    +       availability_topic: "zigbee2mqtt/bridge/state"
+    +       icon: "mdi:toggle-switch"
+    +       value_template: "{{ value_json.click }}"
+    +
+    +   sensor:
+    +     - platform: "mqtt"
+    +       state_topic: "zigbee2mqtt/0x00158d0003614c58"
+    +       availability_topic: "zigbee2mqtt/bridge/state"
+    +       unit_of_measurement: "%"
+    +       device_class: "battery"
+    +       value_template: "{{ value_json.battery }}"
+    +
+    +   sensor:
+    +     - platform: "mqtt"
+    +       state_topic: "zigbee2mqtt/0x00158d0003614c58"
+    +       availability_topic: "zigbee2mqtt/bridge/state"
+    +       unit_of_measurement: "-"
+    +       value_template: "{{ value_json.linkquality }}"
+    +
+    +   sensor:
+    +     - platform: "mqtt"
+    +       state_topic: "zigbee2mqtt/0x00158d000322d1cf"
+    +       availability_topic: "zigbee2mqtt/bridge/state"
+    +       icon: "mdi:toggle-switch"
+    +       value_template: "{{ value_json.click }}"
+    +
+    +   sensor:
+    +     - platform: "mqtt"
+    +       state_topic: "zigbee2mqtt/0x00158d000322d1cf"
+    +       availability_topic: "zigbee2mqtt/bridge/state"
+    +       unit_of_measurement: "%"
+    +       device_class: "battery"
+    +       value_template: "{{ value_json.battery }}"
+    +
+    +   sensor:
+    +     - platform: "mqtt"
+    +       state_topic: "zigbee2mqtt/0x00158d000322d1cf"
+    +       availability_topic: "zigbee2mqtt/bridge/state"
+    +       icon: "mdi:gesture-double-tap"
+    +       value_template: "{{ value_json.action }}"
+    +
+    +   sensor:
+    +     - platform: "mqtt"
+    +       state_topic: "zigbee2mqtt/0x00158d000322d1cf"
+    +       availability_topic: "zigbee2mqtt/bridge/state"
+    +       unit_of_measurement: "-"
+    +       value_template: "{{ value_json.linkquality }}"
+
+# -----------------------------------------------------
+# Run the HomeAssistant container.
+#[user@desktop]
+
+    docker container run \
+        --rm \
+        --tty \
+        --init \
+        --interactive \
+        --name "${hasstname:?}" \
+        --link "${mosquname:?}" \
+        --publish 8123:8123 \
+        --env 'TZ=Europe/London' \
+        --volume "${hasstdata:?}:/config" \
+        homeassistant/home-assistant:stable
+
+    >   starting version 3.2.8
+    >   Config directory: /config
+    >   2020-01-05 16:48:40 INFO (SyncWorker_3) [homeassistant.loader] Loaded logger from homeassistant.components.logger
+    >   2020-01-05 16:48:40 INFO (SyncWorker_0) [homeassistant.loader] Loaded met from homeassistant.components.met
+    >   2020-01-05 16:48:40 INFO (SyncWorker_4) [homeassistant.loader] Loaded sensor from homeassistant.components.sensor
+    >   2020-01-05 16:48:40 INFO (SyncWorker_8) [homeassistant.loader] Loaded mqtt from homeassistant.components.mqtt
+    >   2020-01-05 16:48:40 INFO (SyncWorker_9) [homeassistant.loader] Loaded default_config from homeassistant.components.default_config
+    >   2020-01-05 16:48:40 INFO (SyncWorker_3) [homeassistant.loader] Loaded homeassistant from homeassistant.components.homeassistant
+    >   2020-01-05 16:48:40 INFO (SyncWorker_4) [homeassistant.loader] Loaded persistent_notification from homeassistant.components.persistent_notification
+    >   2020-01-05 16:48:40 INFO (SyncWorker_12) [homeassistant.loader] Loaded http from homeassistant.components.http
+    >   2020-01-05 16:48:40 INFO (SyncWorker_9) [homeassistant.loader] Loaded automation from homeassistant.components.automation
+    >   2020-01-05 16:48:40 INFO (MainThread) [homeassistant.setup] Setting up homeassistant
+
+
+    #
+    # Automation editor still fails to recognise the switch.
+    # Not managed to use the GUI for an automation yet.
+    #
+
+# -----------------------------------------------------
+# Stop the HomeAssistant.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    docker stop "${hasstname:?}"
+
+    >   yboakith
+
+
+# -----------------------------------------------------
+# Add the specific device to HomeAssistant config.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    vi "${hasstdata:?}/configuration.yaml"
+
+    +   automation:
+    +     - alias: 'Xiaomi Switch'
+    +       hide_entity: false
+    +       initial_state: false
+    +       trigger:
+    +         platform: event
+    +         event_type: state_changed
+    +         event_data:
+    +           entity_id: sensor.0x00158d000322d1cf_click
+    +       action:
+    +         service: light.toggle
+    +         entity_id: light.0x00158d00031ec3c7_light
+
+
+# -----------------------------------------------------
+# Run the HomeAssistant container.
+#[user@desktop]
+
+    docker container run \
+        --rm \
+        --tty \
+        --init \
+        --interactive \
+        --name "${hasstname:?}" \
+        --link "${mosquname:?}" \
+        --publish 8123:8123 \
+        --env 'TZ=Europe/London' \
+        --volume "${hasstdata:?}:/config" \
+        homeassistant/home-assistant:stable
+
+    >   starting version 3.2.8
+    >   Config directory: /config
+    >   2020-01-05 16:48:40 INFO (SyncWorker_3) [homeassistant.loader] Loaded logger from homeassistant.components.logger
+    >   2020-01-05 16:48:40 INFO (SyncWorker_0) [homeassistant.loader] Loaded met from homeassistant.components.met
+    >   2020-01-05 16:48:40 INFO (SyncWorker_4) [homeassistant.loader] Loaded sensor from homeassistant.components.sensor
+    >   2020-01-05 16:48:40 INFO (SyncWorker_8) [homeassistant.loader] Loaded mqtt from homeassistant.components.mqtt
+    >   2020-01-05 16:48:40 INFO (SyncWorker_9) [homeassistant.loader] Loaded default_config from homeassistant.components.default_config
+    >   2020-01-05 16:48:40 INFO (SyncWorker_3) [homeassistant.loader] Loaded homeassistant from homeassistant.components.homeassistant
+    >   2020-01-05 16:48:40 INFO (SyncWorker_4) [homeassistant.loader] Loaded persistent_notification from homeassistant.components.persistent_notification
+    >   2020-01-05 16:48:40 INFO (SyncWorker_12) [homeassistant.loader] Loaded http from homeassistant.components.http
+    >   2020-01-05 16:48:40 INFO (SyncWorker_9) [homeassistant.loader] Loaded automation from homeassistant.components.automation
+    >   2020-01-05 16:48:40 INFO (MainThread) [homeassistant.setup] Setting up homeassistant
+
+
+    #
+    # Automation works :-)
+    # (check it isn't disabled in the GUI)
+    #
+
+    #
+    # Switch is working, button is working
+    #
+
+# -----------------------------------------------------
+# Reset the vibration sensor ...
+# (5s button press)
+#[user@desktop]
+
+
+    >   zigbee2mqtt:info  2020-01-05 17:54:22: Device '0x00158d00039dcbcf' joined
+    >   zigbee2mqtt:info  2020-01-05 17:54:22: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"device_connected","message":{"friendly_name":"0x00158d00039dcbcf"}}'
+    >   zigbee2mqtt:info  2020-01-05 17:54:22: Starting interview of '0x00158d00039dcbcf'
+    >   zigbee2mqtt:info  2020-01-05 17:54:22: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_started","meta":{"friendly_name":"0x00158d00039dcbcf"}}'
+    >   zigbee2mqtt:error 2020-01-05 17:55:42: Failed to interview '0x00158d00039dcbcf', device has not successfully been paired
+    >   zigbee2mqtt:info  2020-01-05 17:55:42: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_failed","meta":{"friendly_name":"0x00158d00039dcbcf"}}'
+
+    >   zigbee2mqtt:info  2020-01-05 17:56:24: Starting interview of '0x00158d00039dcbcf'
+    >   zigbee2mqtt:info  2020-01-05 17:56:24: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_started","meta":{"friendly_name":"0x00158d00039dcbcf"}}'
+    >   zigbee2mqtt:error 2020-01-05 17:57:44: Failed to interview '0x00158d00039dcbcf', device has not successfully been paired
+    >   zigbee2mqtt:info  2020-01-05 17:57:44: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_failed","meta":{"friendly_name":"0x00158d00039dcbcf"}}'
+
+
+    #
+    # Use the right method for connecting.
+    # https://www.zigbee2mqtt.io/devices/DJT11LM.html
+
+        "Press the reset button for about 5 seconds.
+         The LED lights up 3 times. Then press the button
+         again every 2 seconds (maximum 20 times)."
+
+
+
+    >   zigbee2mqtt:info  2020-01-05 18:42:11: Starting interview of '0x00158d00039dcbcf'
+    >   zigbee2mqtt:info  2020-01-05 18:42:11: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_started","meta":{"friendly_name":"0x00158d00039dcbcf"}}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:27: MQTT publish: topic 'homeassistant/sensor/0x00158d00039dcbcf/action/config', payload '{"icon":"mdi:gesture-double-tap","value_template":"{{ value_json.action }}","state_topic":"zigbee2mqtt/0x00158d00039dcbcf","json_attributes_topic":"zigbee2mqtt/0x00158d00039dcbcf","name":"0x00158d00039dcbcf_action","unique_id":"0x00158d00039dcbcf_action_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d00039dcbcf"],"name":"0x00158d00039dcbcf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara vibration sensor (DJT11LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:27: MQTT publish: topic 'homeassistant/sensor/0x00158d00039dcbcf/battery/config', payload '{"unit_of_measurement":"%","device_class":"battery","value_template":"{{ value_json.battery }}","state_topic":"zigbee2mqtt/0x00158d00039dcbcf","json_attributes_topic":"zigbee2mqtt/0x00158d00039dcbcf","name":"0x00158d00039dcbcf_battery","unique_id":"0x00158d00039dcbcf_battery_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d00039dcbcf"],"name":"0x00158d00039dcbcf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara vibration sensor (DJT11LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:27: MQTT publish: topic 'homeassistant/sensor/0x00158d00039dcbcf/sensitivity/config', payload '{"value_template":"{{ value_json.sensitivity }}","icon":"mdi:filter-variant","state_topic":"zigbee2mqtt/0x00158d00039dcbcf","json_attributes_topic":"zigbee2mqtt/0x00158d00039dcbcf","name":"0x00158d00039dcbcf_sensitivity","unique_id":"0x00158d00039dcbcf_sensitivity_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d00039dcbcf"],"name":"0x00158d00039dcbcf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara vibration sensor (DJT11LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:27: MQTT publish: topic 'homeassistant/sensor/0x00158d00039dcbcf/linkquality/config', payload '{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00158d00039dcbcf","json_attributes_topic":"zigbee2mqtt/0x00158d00039dcbcf","name":"0x00158d00039dcbcf_linkquality","unique_id":"0x00158d00039dcbcf_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d00039dcbcf"],"name":"0x00158d00039dcbcf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara vibration sensor (DJT11LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:28: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":68}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:31: Successfully interviewed '0x00158d00039dcbcf', device has successfully been paired
+    >   zigbee2mqtt:info  2020-01-05 18:42:31: Device '0x00158d00039dcbcf' is supported, identified as: Xiaomi Aqara vibration sensor (DJT11LM)
+    >   zigbee2mqtt:info  2020-01-05 18:42:31: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_successful","meta":{"friendly_name":"0x00158d00039dcbcf","model":"DJT11LM","vendor":"Xiaomi","description":"Aqara vibration sensor","supported":true}}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:33: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":70,"action":"vibration"}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:33: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":70,"action":""}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:35: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":70,"action":"tilt","angle":61}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:35: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":70,"angle":61,"action":""}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:35: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":68,"angle":61,"angle_x":-1,"angle_y":0,"angle_z":89,"angle_x_absolute":91,"angle_y_absolute":90}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:55: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":63,"angle":13,"angle_x":-1,"angle_y":0,"angle_z":89,"angle_x_absolute":91,"angle_y_absolute":90,"action":"tilt"}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:55: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":63,"angle":13,"angle_x":-1,"angle_y":0,"angle_z":89,"angle_x_absolute":91,"angle_y_absolute":90,"action":""}'
+    >   zigbee2mqtt:info  2020-01-05 18:42:58: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":65,"angle":13,"angle_x":-1,"angle_y":0,"angle_z":89,"angle_x_absolute":91,"angle_y_absolute":90}'
+
+    #
+    # Vibration and tilt work :-)
+    #
+
+    >   zigbee2mqtt:info  2020-01-05 18:53:17: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":73,"angle":102,"angle_x":0,"angle_y":0,"angle_z":90,"angle_x_absolute":90,"angle_y_absolute":90,"action":"vibration"}'
+    >   zigbee2mqtt:info  2020-01-05 18:53:17: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":73,"angle":102,"angle_x":0,"angle_y":0,"angle_z":90,"angle_x_absolute":90,"angle_y_absolute":90,"action":""}'
+    >   zigbee2mqtt:info  2020-01-05 18:53:25: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":70,"angle":6,"angle_x":0,"angle_y":0,"angle_z":90,"angle_x_absolute":90,"angle_y_absolute":90,"action":"tilt"}'
+    >   zigbee2mqtt:info  2020-01-05 18:53:25: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":70,"angle":6,"angle_x":0,"angle_y":0,"angle_z":90,"angle_x_absolute":90,"angle_y_absolute":90,"action":""}'
+    >   zigbee2mqtt:info  2020-01-05 18:53:28: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":57,"voltage":2925,"linkquality":65,"angle":6,"angle_x":4,"angle_y":1,"angle_z":-86,"angle_x_absolute":86,"angle_y_absolute":89}'
+
+    #
+    # Set the sensitivity.
+    # https://www.reddit.com/r/homeassistant/comments/c2ewqv/xiaomi_aqara_vibration_sensor_sensitivity/
+    # https://www.zigbee2mqtt.io/information/mqtt_topics_and_message_structure.html#device-specific-commands
+    # https://www.zigbee2mqtt.io/devices/DJT11LM.html#sensitivity
+
+    topic:
+        zigbee2mqtt/0x00158d00039dcbcf/set
+
+    payload:
+        {"sensitivity":"high"}
+
+    >   igbee2mqtt:error 2020-01-05 19:44:29: Publish 'set' 'sensitivity' to '0x00158d00039dcbcf' failed: 'Error: Timeout - 20195 - 1 - 124 - 0 - 4 after 10000ms'
+    >   zigbee2mqtt:info  2020-01-05 19:44:29: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"zigbee_publish_error","message":"Publish 'set' 'sensitivity' to '0x00158d00039dcbcf' failed: 'Error: Timeout - 20195 - 1 - 124 - 0 - 4 after 10000ms'","meta":{"friendly_name":"0x00158d00039dcbcf"}}'
+
+    #
+    # Set the sensitivity to a number.
+    # http://faire-ca-soi-meme.fr/domotique/2018/09/03/test-xiaomi-aqara-vibration-sensor/
+
+    topic:
+        zigbee2mqtt/0x00158d00039dcbcf/set
+
+    payload:
+        {"sensitivity":1}
+
+    >   zigbee2mqtt:info  2020-01-05 19:45:27: MQTT publish: topic 'zigbee2mqtt/0x00158d00039dcbcf', payload '{"battery":100,"voltage":3035,"linkquality":63,"angle":9,"angle_x":0,"angle_y":1,"angle_z":89,"angle_x_absolute":90,"angle_y_absolute":89,"sensitivity":1}'
+
+
+
+
+# -----------------------------------------------------
+# Stop the HomeAssistant.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    docker stop "${hasstname:?}"
+
+    >   yboakith
+
+
+# -----------------------------------------------------
+# Add the specific device to HomeAssistant config.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    vi "${hasstdata:?}/configuration.yaml"
+
+automation:
+  - alias: 'Xiaomi tilt'
+    hide_entity: false
+    initial_state: false
+    trigger:
+      platform: state
+      entity_id: sensor.0x00158d00039dcbcf_action
+      to: "tilt"
+    action:
+      service: light.toggle
+      entity_id: light.0xx00124b001efef505_light
+
+# -----------------------------------------------------
+# Run the HomeAssistant container.
+#[user@desktop]
+
+    docker container run \
+        --rm \
+        --tty \
+        --init \
+        --interactive \
+        --name "${hasstname:?}" \
+        --link "${mosquname:?}" \
+        --publish 8123:8123 \
+        --env 'TZ=Europe/London' \
+        --volume "${hasstdata:?}:/config" \
+        homeassistant/home-assistant:stable
+
+    >   
+    >   
+    >   
+    >   automation:
+    >     - alias: 'Xiaomi tilt'
+    >       hide_entity: false
+    >       initial_state: false
+    >       trigger:
+    >         platform: event
+    >         event_type: state_changed
+    >         event_data:
+    >           entity_id: sensor.0x00158d00039dcbcf_action
+    >       action:
+    >         service: light.on
+    >         entity_id: light.0x00124b001efef505_light
+    >   
+    >   
+    >   
+    >   
+    >   
+    >   
+    >   
+    >   

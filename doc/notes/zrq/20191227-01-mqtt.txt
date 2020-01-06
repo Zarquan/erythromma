@@ -1,0 +1,51 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2019 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+
+    Messaging with MQTT
+    https://micropython-iot-hackathon.readthedocs.io/en/latest/mqtt.html
+
+    MicroPython – Getting Started with MQTT on ESP32/ESP8266
+    https://randomnerdtutorials.com/micropython-mqtt-esp32-esp8266/
+
+    Micropython on ESP8266 Workshop
+    https://micropython-on-esp8266-workshop.readthedocs.io/en/latest/index.html
+
+    mpfshell
+    https://github.com/wendlers/mpfshell
+        "A simple shell based file explorer for ESP8266 Micropython devices"
+
+    ThingFlow
+    https://thingflow.io/
+        "ThingFlow is a framework for building IoT event processing dataflows that runs on Python 3 and MicroPython."
+
+    ThingFlow-Python
+    https://thingflow-python.readthedocs.io/en/latest/
+    https://github.com/mpi-sws-rse/thingflow-python
+        "ThingFlow is a (Python3) framework for building IoT event processing dataflows."
+
+
+    Apache ActiveMQ supports MQTT
+    http://activemq.apache.org/components/artemis/documentation/latest/mqtt.html
+
+
+
