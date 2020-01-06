@@ -1,0 +1,138 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2019 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+
+https://github.com/micropython/micropython/tree/master/ports/esp8266
+https://github.com/micropython/webrepl
+
+# -----------------------------------------------------------------------------------
+# Login to a node on the wifi network.
+#[user@desktop]
+
+    ssh pi@wifi-one
+
+
+# -----------------------------------------------------------------------------------
+# Tail the DHCP logs
+#[user@wifi-one]
+
+    journalctl -f -u hostapd.service -u dnsmasq.service
+
+    >   Dec 07 03:37:36 wifi-one.metagrid.co.uk dnsmasq-dhcp[487]: DHCPDISCOVER(wlan0) b4:e6:2d:23:bf:e7
+    >   Dec 07 03:37:36 wifi-one.metagrid.co.uk dnsmasq-dhcp[487]: DHCPOFFER(wlan0) 10.6.0.22 b4:e6:2d:23:bf:e7
+    >   Dec 07 03:37:36 wifi-one.metagrid.co.uk dnsmasq-dhcp[487]: DHCPDISCOVER(wlan0) b4:e6:2d:23:bf:e7
+    >   Dec 07 03:37:36 wifi-one.metagrid.co.uk dnsmasq-dhcp[487]: DHCPOFFER(wlan0) 10.6.0.22 b4:e6:2d:23:bf:e7
+    >   Dec 07 03:37:36 wifi-one.metagrid.co.uk dnsmasq-dhcp[487]: DHCPREQUEST(wlan0) 10.6.0.22 b4:e6:2d:23:bf:e7
+    >   Dec 07 03:37:36 wifi-one.metagrid.co.uk dnsmasq-dhcp[487]: DHCPACK(wlan0) 10.6.0.22 b4:e6:2d:23:bf:e7 ESP_23BFE7
+
+
+# -----------------------------------------------------------------------------------
+# Test the webrepl client.
+#[user@wifi-one]
+
+    telnet 10.6.0.22 8266
+
+    >   Trying 10.6.0.22...
+    >   Connected to 10.6.0.22.
+    >   Escape character is '^]'.
+
+    #
+    # HANGS ..
+    #
+
+
+# -----------------------------------------------------------------------------------
+# Test the webrepl client.
+# https://stackoverflow.com/a/40212593
+# https://github.com/Hermann-SW/webrepl
+# https://forum.micropython.org/viewtopic.php?f=2&t=3124&sid=2f597d72f072a5de2dc29014735cbb81&start=10#p30427
+#[user@wifi-one]
+
+    pip install websocket-client
+
+    clone git@github.com:Hermann-SW/webrepl.git
+
+    pushd webrepl
+
+    >   ./webrepl_client.py 10.6.0.22
+    >   Password:
+    >   
+    >   WebREPL connected
+    >   >>>
+    >   >>>
+    >   MicroPython v1.11-8-g48dcbbe60 on 2019-05-29; ESP module with ESP8266
+    >   Type "help()" for more information.
+    >   >>>
+
+
+#----------------------------------------------------------------
+# Load our test loop.
+#[user@esp8266]
+
+E
+
+import time
+import machine
+
+pin0 = machine.Pin(16, machine.Pin.IN, None)
+pin1 = machine.Pin( 5, machine.Pin.IN, None)
+pin2 = machine.Pin( 4, machine.Pin.IN, None)
+pin3 = machine.Pin( 0, machine.Pin.IN, None)
+
+pin4 = machine.Pin( 2, machine.Pin.OUT)
+pin5 = machine.Pin(14, machine.Pin.OUT)
+pin6 = machine.Pin(12, machine.Pin.OUT)
+pin7 = machine.Pin(13, machine.Pin.OUT)
+
+pin4.off()
+pin4.on()
+
+pinum = 1
+state = 0
+light = True
+delay = 60
+
+while True:
+
+  if pinum == 0:
+     input = pin0.value()
+  else:
+     input = pin1.value()
+
+  if input != 0 :
+    state = delay
+  else:
+    if state > 0 :
+      state = state - 1
+
+  if light & (state != 0) :
+    pin4.value(0)
+  else:
+    pin4.value(1)
+
+  print(pin0.value(), pin1.value(), state)
+
+  time.sleep_ms(1000)
+
+D
+
+

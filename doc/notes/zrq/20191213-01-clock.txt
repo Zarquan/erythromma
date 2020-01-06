@@ -1,0 +1,98 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2019 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+
+# -----------------------------------------------------------------------------------
+# Test the webrepl client.
+# https://stackoverflow.com/a/40212593
+# https://github.com/Hermann-SW/webrepl
+# https://forum.micropython.org/viewtopic.php?f=2&t=3124&sid=2f597d72f072a5de2dc29014735cbb81&start=10#p30427
+#[user@wifi-one]
+
+    clone git@github.com:Hermann-SW/webrepl.git
+
+    pip install websocket-client
+
+    >   ./webrepl_client.py 10.6.0.22
+    >   Password:
+    >   
+    >   WebREPL connected
+    >   >>>
+    >   >>>
+    >   MicroPython v1.11-8-g48dcbbe60 on 2019-05-29; ESP module with ESP8266
+    >   Type "help()" for more information.
+    >   >>>
+
+# -----------------------------------------------------------------------------------
+# Experiment with the clock.
+# https://docs.micropython.org/en/latest/esp8266/quickref.html
+# https://docs.micropython.org/en/latest/library/machine.html#constants
+# https://docs.micropython.org/en/latest/library/machine.RTC.html#machine-rtc
+# https://docs.micropython.org/en/latest/esp8266/quickref.html#real-time-clock-rtc
+# https://forum.micropython.org/viewtopic.php?t=1083#p6441
+# https://www.programcreek.com/python/example/101394/machine.RTC
+# https://randomnerdtutorials.com/micropython-esp8266-deep-sleep-wake-up-sources/
+#
+#
+
+E
+
+import machine
+import ntptime
+
+pin0 = machine.Pin(16, machine.Pin.IN, None)
+pin1 = machine.Pin( 5, machine.Pin.IN, None)
+pin2 = machine.Pin( 4, machine.Pin.IN, None)
+pin3 = machine.Pin( 0, machine.Pin.IN, None)
+
+pin4 = machine.Pin( 2, machine.Pin.OUT)
+pin5 = machine.Pin(14, machine.Pin.OUT)
+pin6 = machine.Pin(12, machine.Pin.OUT)
+pin7 = machine.Pin(13, machine.Pin.OUT)
+
+pin4.off()
+pin4.on()
+
+rtc = machine.RTC()
+rtc.datetime()
+
+ntptime.settime()
+rtc.datetime()
+
+irq = rtc.irq(
+    trigger=machine.RTC.ALARM0
+    )
+
+rtc.alarm(
+    rtc.ALARM0,
+    10000
+    )
+
+pin4.value(
+    pin4.value() ^ 0x01
+    )
+
+
+
+
+D
+

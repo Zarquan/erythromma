@@ -1,0 +1,116 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (c) 2019, ROE (http://www.roe.ac.uk/)
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+# -----------------------------------------------------
+# -----------------------------------------------------
+
+    Next steps ....
+
+    Tunable white light
+    https://www.amazon.co.uk/gp/product/B074N6P92Y/
+    £24.95
+
+    MultiColour light
+    https://www.amazon.co.uk/gp/product/B07W7DCMCD/
+    £26.49
+
+    Zigbee are expensive !!
+
+
+# -----------------------------------------------------
+# -----------------------------------------------------
+
+    Next steps ....
+
+    Crompton LED 5W SMART GU10 Dimmable Warm White + Colour
+    https://www.simplyled.co.uk/product/crompton-led-5w-smart-gu10-dimmable-warm-white-rgb/
+    £15.99
+
+       £15.99 inc VAT
+        £3.99 postage
+       £19.98 total
+
+    WiFi are expensive too !
+    https://www.simplyled.co.uk/sales/order/view/order_id/64344/
+
+    Re-flash using
+    https://github.com/ct-Open-Source/tuya-convert
+
+# -----------------------------------------------------
+# -----------------------------------------------------
+
+    Fix WiFi dnsmasq so that nodes on the  WiFi network can see node on the main LAN.
+    Create a separat IoT WiFi network with restricted access.
+
+# -----------------------------------------------------
+# -----------------------------------------------------
+
+    Create a test MQTT component using Python.
+
+    Push MQTT notifications from our sensors.
+    Pull MQTT notifications for our light.
+
+    Make this look like a sensors and light HomeAssistant.
+
+
+# -----------------------------------------------------
+# -----------------------------------------------------
+
+    Create a MQTT component in MicroPython on the ESP board.
+
+    Push MQTT notifications from our sensors.
+    Pull MQTT notifications for our light.
+
+    Make this look like a sensors and light HomeAssistant.
+
+
+# -----------------------------------------------------
+# -----------------------------------------------------
+
+    Explore ThingFlow
+    https://thingflow-python.readthedocs.io/en/latest/intro.html
+
+
+# -----------------------------------------------------
+# -----------------------------------------------------
+
+    Separate networks for IoT and LAN.
+    Limit external access for the IoT devices.
+    Log all external connections from the IoT devices.
+
+    MQTT messages only on the IoT network ?
+    HomeAssistant connected to all networks
+
+        *) IoT WiFi for MQTT
+        *) Local LAN for HTTP
+        *) Public internet via HAProxy
+
+    IoT devices have to have passwords and/or keys on them ?
+    Or the network has to be open to anyone joining ?
+    ...or ?
+
+
+
+
+
+
+
+

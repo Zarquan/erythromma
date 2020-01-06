@@ -1,0 +1,564 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2020 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+    #
+    # Gledopto GL-S-007Z colour spot <-- this is what it says it is
+    # https://www.zigbee2mqtt.io/devices/GL-S-007Z.html
+
+        light:
+          - platform: "mqtt"
+            state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+            availability_topic: "zigbee2mqtt/bridge/state"
+            brightness: true
+            xy: true
+            white_value: true
+            schema: "json"
+            command_topic: "zigbee2mqtt/<FRIENDLY_NAME>/set"
+
+        sensor:
+          - platform: "mqtt"
+            state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+            availability_topic: "zigbee2mqtt/bridge/state"
+            unit_of_measurement: "-"
+            value_template: "{{ value_json.linkquality }}"
+
+    #
+    # Gledopto GL-S-007ZS colour spot <-- this is how it behaves
+    # https://www.zigbee2mqtt.io/devices/GL-S-007ZS.html
+
+        light:
+          - platform: "mqtt"
+            state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+            availability_topic: "zigbee2mqtt/bridge/state"
+            brightness: true
+            color_temp: true
+            xy: true
+            schema: "json"
+            command_topic: "zigbee2mqtt/<FRIENDLY_NAME>/set"
+
+        sensor:
+          - platform: "mqtt"
+            state_topic: "zigbee2mqtt/<FRIENDLY_NAME>"
+            availability_topic: "zigbee2mqtt/bridge/state"
+            unit_of_measurement: "-"
+            value_template: "{{ value_json.linkquality }}"
+
+
+
+
+    #
+    # Issue with GLEDOPTO GL-S-007Z
+    # https://github.com/Koenkk/zigbee2mqtt/issues/2447
+
+        "zigbee2mqtt:error 2019-12-01 13:50:11: Publish 'set' 'white_value' to '0x00124b001ef9e738' failed: 'TypeError: Cannot read property 'state' of undefined'"
+
+    #
+    # Use correct Home Assistant configuration for GL-S-007Z
+    # https://github.com/Koenkk/zigbee2mqtt/pull/2616
+
+        "This PR changes the Gledopto GL-S-007Z to use color temperature instead, as this bulb supports adjusting color temperature and not just brightness."
+        "I think this fixes #2447 (I don't think we shouldn't be using white_value, we should instead be using color_temp to control the white LEDs)."
+
+    # https://github.com/Koenkk/zigbee2mqtt/pull/2616/files
+
+        lib/extension/homeassistant.js
+
+        -   'GL-S-007Z': [cfg.light_brightness_colorxy_white],
+        +   'GL-S-007Z': [cfg.light_brightness_colortemp_colorxy],
+
+    #
+    # Gledopto improvements
+    # https://github.com/Koenkk/zigbee-herdsman-converters/pull/661
+
+    #
+    # Add GL-S-007Z #176
+    # https://github.com/Koenkk/zigbee-herdsman-converters/pull/176/files
+
+    #
+    # How to support new devices
+    # https://www.zigbee2mqtt.io/how_tos/how_to_support_new_devices.html
+
+
+
+# -----------------------------------------------------
+# Stop both Zigbee2mqtt and HomeAssistant.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    docker stop "${zb2mqname:?}"
+
+    >   heririd
+
+
+    docker stop "${hasstname:?}"
+
+    >   yboakith
+
+
+# -----------------------------------------------------
+# Remove the GL-S-007Z from the Zigbee2mqtt config files.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    pushd "${zb2mqdata:?}"
+
+        vi configuration.yaml
+
+            homeassistant: true
+            permit_join: true
+            mqtt:
+              base_topic: zigbee2mqtt
+              server: 'mqtt://cilican'
+            serial:
+              port: /dev/ttyACM0
+            devices:
+              '0x00158d00031ec3c7':
+                friendly_name: '0x00158d00031ec3c7'
+              '0x00158d0003614c58':
+                friendly_name: '0x00158d0003614c58'
+              '0x00158d000322d1cf':
+                friendly_name: '0x00158d000322d1cf'
+        -     '0x00124b001efef505':
+        -       friendly_name: '0x00124b001efef505'
+
+
+        sudo vi database.db
+
+            {"id":1,"type":"Coordinator", ...
+            {"id":2,"type":"Router","ieeeAddr":"0x00158d00031ec3c7","nwkAddr":55797,"manufId":4454,"manufName":"innr", ...
+            {"id":3,"type":"EndDevice","ieeeAddr":"0x00158d0003614c58","nwkAddr":24657,"manufId":4151,"manufName":"LUMI", ...
+            {"id":4,"type":"EndDevice","ieeeAddr":"0x00158d000322d1cf","nwkAddr":41560,"manufId":4151,"manufName":"LUMI", ...
+        -   {"id":5,"type":"Router","ieeeAddr":"0x00124b001efef505","nwkAddr":41802,"manufId":0,"manufName":"GLEDOPTO", ...
+
+
+        sudo vi state.json
+
+            {
+                "0x00158d00031ec3c7": {
+                    "state": "OFF",
+                    "brightness": 73
+                },
+                "0x00158d0003614c58": {
+                    "linkquality": 86
+                },
+                "0x00158d000322d1cf": {
+                    "battery": 100,
+                    "voltage": 3125,
+                    "linkquality": 102
+        -       },
+        -       "0x00124b001efef505": {
+        -           "state": "ON",
+        -           "brightness": 188,
+        -           "color": {
+        -               "x": 0.322,
+        -               "y": 0.531
+        -           },
+        -           "color_temp": 176
+                }
+            }
+
+
+# -----------------------------------------------------
+# Start a new instance of Zigbee2mqtt.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    docker run \
+        --rm \
+        --tty \
+        --interactive \
+        --name "${zb2mqname:?}" \
+        --link "${mosquname:?}" \
+       --env 'TZ=Europe/London' \
+       --device /dev/ttyACM0 \
+       --volume "${zb2mqdata:?}:/app/data" \
+       --volume /run/udev:/run/udev:ro \
+       --privileged=true \
+       koenkk/zigbee2mqtt
+
+
+    >   Using '/app/data' as data directory
+    >   
+    >   > zigbee2mqtt@1.8.0 start /app
+    >   > node index.js
+    >   
+    >   zigbee2mqtt:info  2020-01-05 05:54:19: Logging to console and directory: '/app/data/log/2020-01-05.05-54-19'
+    >   zigbee2mqtt:info  2020-01-05 05:54:20: Starting zigbee2mqtt version 1.8.0 (commit #da4d26a)
+    >   zigbee2mqtt:info  2020-01-05 05:54:20: Starting zigbee-herdsman...
+    >   zigbee2mqtt:info  2020-01-05 05:54:21: zigbee-herdsman started
+    >   zigbee2mqtt:info  2020-01-05 05:54:21: Coordinator firmware version: '{"type":"zStack12","meta":{"transportrev":2,"product":0,"majorrel":2,"minorrel":6,"maintrel":3,"revision":20190608}}'
+    >   zigbee2mqtt:info  2020-01-05 05:54:21: Currently 3 devices are joined:
+    >   zigbee2mqtt:info  2020-01-05 05:54:21: 0x00158d00031ec3c7 (0x00158d00031ec3c7): RS 225 - Innr GU10 Spot (Router)
+    >   zigbee2mqtt:info  2020-01-05 05:54:21: 0x00158d0003614c58 (0x00158d0003614c58): WXKG01LM - Xiaomi MiJia wireless switch (EndDevice)
+    >   zigbee2mqtt:info  2020-01-05 05:54:21: 0x00158d000322d1cf (0x00158d000322d1cf): WXKG03LM - Xiaomi Aqara single key wireless wall switch (EndDevice)
+    >   zigbee2mqtt:warn  2020-01-05 05:54:21: `permit_join` set to  `true` in configuration.yaml.
+    >   zigbee2mqtt:warn  2020-01-05 05:54:21: Allowing new devices to join.
+    >   ....
+    >   ....
+
+
+# -----------------------------------------------------
+# Login to the Zigbee2mqtt container and edit the source code.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    docker exec -it "${zb2mqname:?}" /bin/sh
+
+
+        vi lib/extension/homeassistant.js
+
+            -   'GL-S-007Z': [cfg.light_brightness_colorxy_white],
+            +   'GL-S-007Z': [cfg.light_brightness_colortemp_colorxy],
+
+
+        vi node_modules/zigbee-herdsman-converters/devices.js
+
+                {
+                    zigbeeModel: ['GL-S-007Z'],
+                    model: 'GL-S-007Z',
+                    vendor: 'Gledopto',
+                    description: 'Smart RGBW GU10',
+                    extend: gledopto.light,
+            -       supports: 'on/off, brightness, color, white',
+            +       supports: 'on/off, brightness, color, color temperature',
+                    meta: {options: {disableDefaultResponse: true}},
+                },
+                {
+                    zigbeeModel: ['GL-S-007ZS'],
+                    model: 'GL-S-007ZS',
+                    vendor: 'Gledopto',
+                    description: 'Smart RGB+CCT GU10',
+                    extend: gledopto.light,
+                    supports: 'on/off, brightness, color, color temperature',
+                },
+
+
+# -----------------------------------------------------
+# Remove the GL-S-007Z from the HomeAssistant config files.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    pushd "${hasstdata:?}"
+
+        sudo chown "$(id -un)" home-assistant_v2.db
+
+        sqlite3 home-assistant_v2.db
+
+            delete from events where event_data LIKE '%00124b001efef505%' ;
+
+            delete from states where entity_id  LIKE '%00124b001efef505%' ;
+            delete from states where attributes like '%00124b001efef505%';
+
+            .quit
+
+        sudo chown 'root' home-assistant_v2.db
+
+        pushd .storage
+
+            sudo vi core.device_registry
+
+            -   },
+            -   {
+            -       "area_id": null,
+            -       "config_entries": [
+            -           "72eb85321cab489bbdcbde18f4838c8d"
+            -       ],
+            -       "connections": [],
+            -       "id": "d670ff82e013424bbeca219bd5f78168",
+            -       "identifiers": [
+            -           [
+            -               "mqtt",
+            -               "zigbee2mqtt_0x00124b001efef505"
+            -           ]
+            -       ],
+            -       "manufacturer": "Gledopto",
+            -       "model": "Smart RGBW GU10 (GL-S-007Z)",
+            -       "name": "0x00124b001efef505",
+            -       "name_by_user": null,
+            -       "sw_version": "Zigbee2mqtt 1.8.0",
+            -       "via_device_id": null
+                }
+
+
+            sudo vi core.entity_registry
+
+            -   },
+            -   {
+            -       "config_entry_id": "72eb85321cab489bbdcbde18f4838c8d",
+            -       "device_id": "d670ff82e013424bbeca219bd5f78168",
+            -       "disabled_by": null,
+            -       "entity_id": "light.0x00124b001efef505_light",
+            -       "name": null,
+            -       "platform": "mqtt",
+            -       "unique_id": "0x00124b001efef505_light_zigbee2mqtt"
+            -   },
+            -   {
+            -       "config_entry_id": "72eb85321cab489bbdcbde18f4838c8d",
+            -       "device_id": "d670ff82e013424bbeca219bd5f78168",
+            -       "disabled_by": null,
+            -       "entity_id": "sensor.0x00124b001efef505_linkquality",
+            -       "name": null,
+            -       "platform": "mqtt",
+            -       "unique_id": "0x00124b001efef505_linkquality_zigbee2mqtt"
+                }
+
+
+            sudo vi core.restore_state
+
+            -   },
+            -   {
+            -       "last_seen": "2020-01-05T05:41:22.856592+00:00",
+            -       "state": {
+            -           "attributes": {
+            -               "friendly_name": "0x00124b001efef505_light",
+            -               "supported_features": 185
+            -           },
+            -           "context": {
+            -               "id": "29f82bab1c024789b56b927a96faf2a1",
+            -               "parent_id": null,
+            -               "user_id": null
+            -           },
+            -           "entity_id": "light.0x00124b001efef505_light",
+            -           "last_changed": "2020-01-05T05:41:22.127085+00:00",
+            -           "last_updated": "2020-01-05T05:41:22.127085+00:00",
+            -           "state": "unavailable"
+            -       }
+                }
+
+        popd
+    popd
+
+# -----------------------------------------------------
+# Run the HomeAssistant container.
+#[user@desktop]
+
+    docker container run \
+        --rm \
+        --tty \
+        --init \
+        --interactive \
+        --name "${hasstname:?}" \
+        --link "${mosquname:?}" \
+        --publish 8123:8123 \
+        --env 'TZ=Europe/London' \
+        --volume "${hasstdata:?}:/config" \
+        homeassistant/home-assistant:stable
+
+    >   starting version 3.2.8
+    >   Config directory: /config
+    >   2020-01-05 06:31:22 INFO (SyncWorker_0) [homeassistant.loader] Loaded automation from homeassistant.components.automation
+    >   2020-01-05 06:31:22 INFO (SyncWorker_4) [homeassistant.loader] Loaded mqtt from homeassistant.components.mqtt
+    >   ....
+
+
+# -----------------------------------------------------
+# Looks like the state was kept in the MQTT broker !?.
+#[user@desktop]
+
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to homeassistant/#
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event component_loaded[L]: component=mqtt>
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/light/0x00124b001efef505/light/config (retained): b'{"brightness":true,"xy":true,"white_value":true,"schema":"json","command_topic":"zigbee2mqtt/0x00124b001efef505/set","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_light","unique_id":"0x00124b001efef505_light_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00124b001efef505/linkquality/config (retained): b'{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_linkquality","unique_id":"0x00124b001efef505_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   ....
+    >   2020-01-05 06:31:24 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: light 0x00124b001efef505 light
+    >   ....
+    >   2020-01-05 06:31:24 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: sensor 0x00124b001efef505 linkquality
+    >   2020-01-05 06:31:24 INFO (SyncWorker_8) [homeassistant.loader] Loaded light from homeassistant.components.light
+    >   2020-01-05 06:31:24 INFO (MainThread) [homeassistant.setup] Setting up zeroconf
+    >   2020-01-05 06:31:24 INFO (MainThread) [homeassistant.setup] Setting up notify
+    >   2020-01-05 06:31:24 INFO (MainThread) [homeassistant.setup] Setup of domain notify took 0.0 seconds.
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event component_loaded[L]: component=notify>
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/light/0x00124b001efef505/light/config (retained): b'{"brightness":true,"xy":true,"white_value":true,"schema":"json","command_topic":"zigbee2mqtt/0x00124b001efef505/set","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_light","unique_id":"0x00124b001efef505_light_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.components.mqtt] Transmitting message on hass/status: online
+    >   ....
+    >   2020-01-05 06:31:24 INFO (MainThread) [homeassistant.components.mqtt.discovery] Component has already been discovered: light 0x00124b001efef505 light, sending update
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00124b001efef505/linkquality/config (retained): b'{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_linkquality","unique_id":"0x00124b001efef505_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   ....
+    >   2020-01-05 06:31:24 INFO (MainThread) [homeassistant.components.mqtt.discovery] Component has already been discovered: sensor 0x00124b001efef505 linkquality, sending update
+    >   ....
+    >   2020-01-05 06:31:24 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new light.mqtt entity: light.0x00124b001efef505_light
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=light.0x00124b001efef505_light, old_state=None, new_state=<state light.0x00124b001efef505_light=off; friendly_name=0x00124b001efef505_light, supported_features=185 @ 2020-01-05T06:31:24.491655+00:00>>
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00124b001efef505
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00124b001efef505
+    >   ....
+    >   2020-01-05 06:31:24 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new sensor.mqtt entity: sensor.0x00124b001efef505_linkquality
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=sensor.0x00124b001efef505_linkquality>
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00124b001efef505_linkquality, old_state=None, new_state=<state sensor.0x00124b001efef505_linkquality=unknown; unit_of_measurement=-, friendly_name=0x00124b001efef505_linkquality @ 2020-01-05T06:31:24.842587+00:00>>
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event call_service[L]: domain=group, service=set, service_data=object_id=all_lights, name=all lights, visible=False, entities=['light.0x00124b001efef505_light', 'light.0x00158d00031ec3c7_light']>
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=group.all_lights, old_state=None, new_state=<state group.all_lights=off; entity_id=('light.0x00124b001efef505_light', 'light.0x00158d00031ec3c7_light'), order=1, auto=True, friendly_name=all lights, hidden=True @ 2020-01-05T06:31:24.882244+00:00>>
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event call_service[L]: domain=group, service=set, service_data=object_id=all_lights, name=all lights, visible=False, entities=['light.0x00124b001efef505_light', 'light.0x00158d00031ec3c7_light']>
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00124b001efef505
+    >   ....
+    >   2020-01-05 06:31:24 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00124b001efef505
+
+
+# -----------------------------------------------------
+# Reset the Colour spot, and it should reconnect to the Zigbee network.
+#[user@desktop]
+
+    >   zigbee2mqtt:warn  2020-01-05 06:43:00: Device '0x00124b001efef505' left the network
+    >   zigbee2mqtt:info  2020-01-05 06:43:00: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"device_removed","message":"left_network","meta":{"friendly_name":"0x00124b001efef505"}}'
+    >   zigbee2mqtt:info  2020-01-05 06:43:07: Device '0x00124b001efef505' joined
+    >   zigbee2mqtt:info  2020-01-05 06:43:07: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"device_connected","message":{"friendly_name":"0x00124b001efef505"}}'
+    >   zigbee2mqtt:info  2020-01-05 06:43:07: Starting interview of '0x00124b001efef505'
+    >   zigbee2mqtt:info  2020-01-05 06:43:07: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_started","meta":{"friendly_name":"0x00124b001efef505"}}'
+    >   zigbee2mqtt:info  2020-01-05 06:43:18: MQTT publish: topic 'homeassistant/light/0x00124b001efef505/light/config', payload '{"brightness":true,"xy":true,"white_value":true,"schema":"json","command_topic":"zigbee2mqtt/0x00124b001efef505/set","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_light","unique_id":"0x00124b001efef505_light_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-05 06:43:18: MQTT publish: topic 'homeassistant/sensor/0x00124b001efef505/linkquality/config', payload '{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_linkquality","unique_id":"0x00124b001efef505_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-05 06:43:18: Successfully interviewed '0x00124b001efef505', device has successfully been paired
+    >   zigbee2mqtt:info  2020-01-05 06:43:18: Device '0x00124b001efef505' is supported, identified as: Gledopto Smart RGBW GU10 (GL-S-007Z)
+    >   zigbee2mqtt:info  2020-01-05 06:43:18: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_successful","meta":{"friendly_name":"0x00124b001efef505","model":"GL-S-007Z","vendor":"Gledopto","description":"Smart RGBW GU10","supported":true}}'
+
+
+    >   2020-01-05 06:42:38 DEBUG (MainThread) [homeassistant.components.ssdp] Scanning
+    >   2020-01-05 06:43:18 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/light/0x00124b001efef505/light/config: b'{"brightness":true,"xy":true,"white_value":true,"schema":"json","command_topic":"zigbee2mqtt/0x00124b001efef505/set","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_light","unique_id":"0x00124b001efef505_light_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-05 06:43:18 INFO (MainThread) [homeassistant.components.mqtt.discovery] Component has already been discovered: light 0x00124b001efef505 light, sending update
+    >   2020-01-05 06:43:18 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00124b001efef505/linkquality/config: b'{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_linkquality","unique_id":"0x00124b001efef505_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-05 06:43:18 INFO (MainThread) [homeassistant.components.mqtt] Got update for entity with hash: ('light', '0x00124b001efef505 light') '{'brightness': True, 'xy': True, 'white_value': True, 'schema': 'json', 'command_topic': 'zigbee2mqtt/0x00124b001efef505/set', 'state_topic': 'zigbee2mqtt/0x00124b001efef505', 'json_attributes_topic': 'zigbee2mqtt/0x00124b001efef505', 'name': '0x00124b001efef505_light', 'unique_id': '0x00124b001efef505_light_zigbee2mqtt', 'device': {'identifiers': ['zigbee2mqtt_0x00124b001efef505'], 'name': '0x00124b001efef505', 'sw_version': 'Zigbee2mqtt 1.8.0', 'model': 'Smart RGBW GU10 (GL-S-007Z)', 'manufacturer': 'Gledopto'}, 'availability_topic': 'zigbee2mqtt/bridge/state', 'platform': 'mqtt', 'discovery_hash': ('light', '0x00124b001efef505 light')}'
+    >   2020-01-05 06:43:18 INFO (MainThread) [homeassistant.components.mqtt] Updating component: light.0x00124b001efef505_light
+    >   2020-01-05 06:43:18 INFO (MainThread) [homeassistant.components.mqtt.discovery] Component has already been discovered: sensor 0x00124b001efef505 linkquality, sending update
+    >   2020-01-05 06:43:18 INFO (MainThread) [homeassistant.components.mqtt] Got update for entity with hash: ('sensor', '0x00124b001efef505 linkquality') '{'unit_of_measurement': '-', 'value_template': '{{ value_json.linkquality }}', 'state_topic': 'zigbee2mqtt/0x00124b001efef505', 'json_attributes_topic': 'zigbee2mqtt/0x00124b001efef505', 'name': '0x00124b001efef505_linkquality', 'unique_id': '0x00124b001efef505_linkquality_zigbee2mqtt', 'device': {'identifiers': ['zigbee2mqtt_0x00124b001efef505'], 'name': '0x00124b001efef505', 'sw_version': 'Zigbee2mqtt 1.8.0', 'model': 'Smart RGBW GU10 (GL-S-007Z)', 'manufacturer': 'Gledopto'}, 'availability_topic': 'zigbee2mqtt/bridge/state', 'platform': 'mqtt', 'discovery_hash': ('sensor', '0x00124b001efef505 linkquality')}'
+    >   2020-01-05 06:43:18 INFO (MainThread) [homeassistant.components.mqtt] Updating component: sensor.0x00124b001efef505_linkquality
+    >   2020-01-05 06:43:39 DEBUG (MainThread) [homeassistant.components.ssdp] Scanning
+
+    #
+    # Back to where we were ....
+    # Only 2 of 10 LEDs are lit.
+    # ON/OFF works (for 2/10 LEDs)
+    # brightness works (for 2/10 LEDs)
+    # colour works (for 2/10 LEDs)
+    # transition time is slow (several seconds)
+
+    # Messages from zigbee2mqtt have 'color_temp' not 'white_value'.
+    # {"state":"ON","color":{"x":0.293,"y":0.491},"color_temp":156,"brightness":118}
+
+    # HomeAssistant still has control for 'white_value'.
+    # HomeAssistant still sending messages for 'white_value'.
+
+    # TODO
+    # Repeat all of the above .. but flush the state from MQTT broker as well ?
+    # Checkout a copy of the zigbee2mqtt source code and mount it as a volume ?
+    # Edit the code before we run the container ..
+    #
+
+    #
+    # Start the containers with no state at all.
+    # Solve the problem of updating a live system later (need to know in the end).
+    #
+
+
+    #
+    # Manually publishing messages shows the other LEDs work.
+    # It looks like 2 LEDs are colour, 4 LEDs are cool white, 4 LEDs are warm white
+    # http://hasst.metagrid.co.uk:8123/developer-tools/mqtt
+
+    topic:
+
+        zigbee2mqtt/0x00124b001efef505/set
+
+    payload:
+
+        {"state":"ON","color":{"x":0.387,"y":0.186},"color_temp":1,"brightness":232}
+
+        {"state":"ON","color":{"x":0.58,"y":0.319}, "color_temp":732,"brightness":100, "transition":1}
+        {"state":"ON","color":{"x":0.207,"y":0.681},"color_temp":123,"brightness":100, "transition":1}
+        {"state":"ON","color":{"x":0.189,"y":0.115},"color_temp":61, "brightness":100, "transition":1}
+
+        {"state":"ON", "color_temp":10, "brightness":100} - cold white
+        {"state":"ON", "color_temp":50, "brightness":100} -
+
+        {"state":"ON","color":{"x":0.200,"y":0.700}, "transition":2}
+        {"state":"ON","color":{"x":0.200,"y":0.100}, "transition":2}
+
+        {"state":"ON","color":{"x":0.189,"y":0.115},"color_temp":61, "brightness":100, "transition":1}
+
+    Changing 'color_temp' on its own changes the cool/warm white balance
+
+        {"state":"ON","color_temp":100,"brightness":10}
+        {"state":"ON","color_temp":100,"brightness":10}
+        {"state":"ON","color_temp":200,"brightness":10}
+        {"state":"ON","color_temp":200,"brightness":10}
+        {"state":"ON","color_temp":300,"brightness":10}
+        {"state":"ON","color_temp":300,"brightness":10}
+        {"state":"ON","color_temp":400,"brightness":10}
+        {"state":"ON","color_temp":400,"brightness":100}
+        {"state":"ON","color_temp":400,"brightness":100}
+        {"state":"ON","color_temp":400,"brightness":50}
+        {"state":"ON","color_temp":400,"brightness":50}
+        {"state":"ON","color_temp":400,"brightness":50}
+        {"state":"ON","color_temp":500,"brightness":50}
+        {"state":"ON","color_temp":500,"brightness":50}
+        {"state":"ON","color_temp":600,"brightness":50}
+        {"state":"ON","color_temp":600,"brightness":50}
+        {"state":"ON","color_temp":100,"brightness":50}
+        {"state":"ON","color_temp":100,"brightness":50}
+        {"state":"ON","color_temp":800,"brightness":50}
+        {"state":"ON","color_temp":800,"brightness":50}
+
+        {"state":"ON","color_temp":900,"brightness":50, "transition":5}
+
+    Looks like 'color_temp' range is 0-400.
+
+        {"state":"ON","color_temp":0,  "brightness":50}
+        {"state":"ON","color_temp":400,"brightness":50}
+
+    Adding a transition in the same message makes it barf.
+
+        {"state":"ON","color_temp":400,"brightness":50, "transition":20}
+
+    Setting transition on its own .. doesn't seem to work either.
+
+        {"state":"ON","transition":1}
+        {"state":"ON","transition":10}
+
+        {"state":"ON","color":{"x":0.500,"y":0.300},"brightness":50,"transition":20}
+
+    Setting 'color_temp' switches the white LEDs ON and the colur LEDs OFF.
+    'transition' is ignored
+
+        {"state":"ON","color":{"x":0.500,"y":0.300},"color_temp":200,"brightness":50,"transition":20}
+
+    Without 'color_temp' switches the white LEDs off and the colur LEDs ON
+    'transition' is ignored
+
+        {"state":"ON","color":{"x":0.500,"y":0.300},"brightness":50,"transition":20}
+
+    'transition' works within 'color' and 'color_temp', some of the time.
+
+

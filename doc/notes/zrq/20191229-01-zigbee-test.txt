@@ -1,0 +1,334 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2019 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+
+
+    CC2531 Zigbee2MQTT USB Zigbee Hub
+    USB stick Zigbee chip, integrates with Zigbee2mqtt
+    https://www.cc2531.com/product/cc2531-zigbee2mqtt/
+    £12.99
+
+
+    Innr Smart LED Spot White GU10 (Zigbee)
+    https://www.amazon.co.uk/gp/product/B07M9CQ5X3/
+    £11.99
+
+
+# -----------------------------------------------------
+# Check if there is a version of Mosquitto in Fedora.
+#[user@desktop]
+
+    docker run --rm -it fedora bash
+
+        dnf info mosquitto
+
+    >   Name         : mosquitto
+    >   Version      : 1.6.8
+    >   Release      : 1.fc31
+    >   Architecture : x86_64
+    >   Size         : 292 k
+    >   Source       : mosquitto-1.6.8-1.fc31.src.rpm
+    >   Repository   : updates
+    >   Summary      : An Open Source MQTT v3.1/v3.1.1 Broker
+    >   URL          : http://mosquitto.org/
+    >   License      : BSD
+    >   Description  : Mosquitto is an open source message broker that implements the MQ Telemetry
+    >                : Transport protocol version 3.1 and 3.1.1 MQTT provides a lightweight method
+    >                : of carrying out messaging using a publish/subscribe model. This makes it
+    >                : suitable for "machine to machine" messaging such as with low power sensors
+    >                : or mobile devices such as phones, embedded computers or micro-controllers
+    >                : like the Arduino.
+
+
+# -----------------------------------------------------
+# Create our Mosquitto config file.
+# https://mosquitto.org/man/mosquitto-conf-5.html
+#[user@desktop]
+
+    mosqudata=$(mktemp -d)
+    mosquname=cilican
+
+    cat > "${mosqudata:?}/mosquitto.conf" << EOF
+
+EOF
+
+
+# -----------------------------------------------------
+# Run Mosquitto in a Docker container.
+# https://hub.docker.com/_/eclipse-mosquitto
+#[user@desktop]
+
+    docker run \
+        --rm \
+        --tty \
+        --interactive \
+        --name "${mosquname:?}" \
+        --publish 1883:1883 \
+        --publish 9001:9001 \
+        --volume "${mosqudata:?}/mosquitto.conf:/mosquitto/config/mosquitto.conf" \
+        --volume /mosquitto/data \
+        --volume /mosquitto/log \
+        eclipse-mosquitto
+
+
+    >   Unable to find image 'eclipse-mosquitto:latest' locally
+    >   latest: Pulling from library/eclipse-mosquitto
+    >   c87736221ed0: Pull complete
+    >   0a668b6832af: Pull complete
+    >   07bc6cc597a2: Pull complete
+    >   Digest: sha256:f2986c43a34b123565a8c497593baa27b93df4142f80928019f08ba568a1da3b
+    >   Status: Downloaded newer image for eclipse-mosquitto:latest
+    >   1577669111: mosquitto version 1.6.8 starting
+    >   1577669111: Config loaded from /mosquitto/config/mosquitto.conf.
+    >   1577669111: Opening ipv4 listen socket on port 1883.
+    >   1577669111: Opening ipv6 listen socket on port 1883.
+
+
+# -----------------------------------------------------
+# Locate our Zigbee USB stick.
+#[user@desktop]
+
+    ls -l /dev/ttyACM0
+
+    >   ls: cannot access '/dev/ttyACM0': No such file or directory
+
+    #
+    # Add USB device ...
+    #
+
+    ls -l /dev/ttyACM0
+
+    >   crw-rw----. 1 root dialout 166, 0 Dec 30 01:27 /dev/ttyACM0
+
+
+# -----------------------------------------------------
+# Create our Zigbee2mqtt config file.
+# https://www.zigbee2mqtt.io/getting_started/running_zigbee2mqtt.html#3-configuring
+#[user@desktop]
+
+    mosquname=cilican
+    zb2mqname=heririd
+
+    zb2mqdata=$(mktemp -d)
+
+    cat > "${zb2mqdata:?}/configuration.yaml" << EOF
+
+# Home Assistant integration (MQTT discovery)
+homeassistant: true
+
+# allow new devices to join
+permit_join: true
+
+# MQTT settings
+mqtt:
+
+  # MQTT base topic for zigbee2mqtt MQTT messages
+  base_topic: zigbee2mqtt
+
+  # MQTT server URL
+  server: 'mqtt://${mosquname:?}'
+
+  # MQTT server authentication, uncomment if required:
+  # user: my_user
+  # password: my_password
+
+# Serial settings
+serial:
+
+  # Location of CC2531 USB sniffer
+  port: /dev/ttyACM0
+
+EOF
+
+
+# -----------------------------------------------------
+# Run Zigbee2mqtt in a Docker container.
+# https://www.zigbee2mqtt.io/information/docker.html
+#[user@desktop]
+
+    docker run \
+        --rm \
+        --tty \
+        --interactive \
+        --name "${zb2mqname:?}" \
+        --link "${mosquname:?}" \
+       --env 'TZ=Europe/London' \
+       --device /dev/ttyACM0 \
+       --volume "${zb2mqdata:?}:/app/data" \
+       --volume /run/udev:/run/udev:ro \
+       --privileged=true \
+       koenkk/zigbee2mqtt
+
+
+    >   Using '/app/data' as data directory
+    >   
+    >   > zigbee2mqtt@1.8.0 start /app
+    >   > node index.js
+    >   
+    >   zigbee2mqtt:info  2019-12-30 01:42:30: Logging to console and directory: '/app/data/log/2019-12-30.01-42-30'
+    >   zigbee2mqtt:info  2019-12-30 01:42:30: Starting zigbee2mqtt version 1.8.0 (commit #da4d26a)
+    >   zigbee2mqtt:info  2019-12-30 01:42:30: Starting zigbee-herdsman...
+    >   zigbee2mqtt:info  2019-12-30 01:42:31: zigbee-herdsman started
+    >   zigbee2mqtt:info  2019-12-30 01:42:31: Coordinator firmware version: '{"type":"zStack12","meta":{"transportrev":2,"product":0,"majorrel":2,"minorrel":6,"maintrel":3,"revision":20190608}}'
+    >   zigbee2mqtt:info  2019-12-30 01:42:31: Currently 0 devices are joined:
+    >   zigbee2mqtt:warn  2019-12-30 01:42:31: `permit_join` set to  `true` in configuration.yaml.
+    >   zigbee2mqtt:warn  2019-12-30 01:42:31: Allowing new devices to join.
+    >   zigbee2mqtt:warn  2019-12-30 01:42:31: Set `permit_join` to `false` once you joined all devices.
+    >   zigbee2mqtt:info  2019-12-30 01:42:31: Zigbee: allowing new devices to join.
+    >   zigbee2mqtt:info  2019-12-30 01:42:31: Connecting to MQTT server at mqtt://cilican
+    >   zigbee2mqtt:info  2019-12-30 01:42:31: Connected to MQTT server
+    >   zigbee2mqtt:info  2019-12-30 01:42:31: MQTT publish: topic 'zigbee2mqtt/bridge/state', payload 'online'
+    >   zigbee2mqtt:info  2019-12-30 01:42:31: MQTT publish: topic 'zigbee2mqtt/bridge/config', payload '{"version":"1.8.0","commit":"da4d26a","coordinator":{"type":"zStack12","meta":{"transportrev":2,"product":0,"majorrel":2,"minorrel":6,"maintrel":3,"revision":20190608}},"log_level":"info","permit_join":false}'
+
+
+
+# -----------------------------------------------------
+# Create our HomeAssistant config file.
+# https://www.home-assistant.io/docs/configuration/basic/
+#[user@desktop]
+
+    mosquname=cilican
+    zb2mqname=heririd
+    hasstname=yboakith
+
+    hasstdata=$(mktemp -d)
+
+    cat > "${hasstdata:?}/configuration.yaml" << EOF
+
+default_config:
+
+homeassistant:
+    latitude:  50.6331828
+    longitude: -3.3327239
+    elevation: 17
+    unit_system: metric
+    time_zone: Europe/London
+    name: EX96PU
+
+mqtt:
+  broker: ${mosquname}
+  discovery: true
+  discovery_prefix: homeassistant
+
+logger:
+  default: debug
+  logs:
+    homeassistant.components.yamaha: debug
+
+EOF
+
+# -----------------------------------------------------
+# Run HomeAssistant in a Docker container.
+# https://www.home-assistant.io/docs/installation/docker/
+#[user@desktop]
+
+    docker run \
+        --rm \
+        --tty \
+        --init \
+        --interactive \
+        --name "${hasstname}" \
+        --link "${mosquname:?}" \
+        --publish 8123:8123 \
+        --env 'TZ=Europe/London' \
+        --volume "${hasstdata:?}:/config" \
+        homeassistant/home-assistant:stable
+
+
+    >   Unable to find image 'homeassistant/home-assistant:stable' locally
+    >   stable: Pulling from homeassistant/home-assistant
+    >   89d9c30c1d48: Already exists
+    >   adea977cb34c: Pull complete
+    >   f1115db86e6e: Pull complete
+    >   ....
+    >   ....
+    >   Digest: sha256:d5c994dcf9c278c4e5895e49c10c936e11bf66335d77b91bb4090b710bf44b35
+    >   Status: Downloaded newer image for homeassistant/home-assistant:stable
+    >   starting version 3.2.8
+    >   Config directory: /config
+    >   2019-12-30 02:14:06 INFO (SyncWorker_0) [homeassistant.config] Upgrading configuration directory from 0.7.7 to 0.103.5
+    >   2019-12-30 02:14:06 INFO (SyncWorker_2) [homeassistant.loader] Loaded homeassistant from homeassistant.components.homeassistant
+    >   2019-12-30 02:14:06 INFO (SyncWorker_3) [homeassistant.loader] Loaded persistent_notification from homeassistant.components.persistent_notification
+    >   2019-12-30 02:14:06 INFO (MainThread) [homeassistant.setup] Setting up homeassistant
+    >   2019-12-30 02:14:06 INFO (MainThread) [homeassistant.setup] Setup of domain homeassistant took 0.0 seconds.
+    >   2019-12-30 02:14:06 INFO (MainThread) [homeassistant.setup] Setting up persistent_notification
+    >   2019-12-30 02:14:06 INFO (MainThread) [homeassistant.setup] Setup of domain persistent_notification took 0.0 seconds.
+    >   2019-12-30 02:14:06 INFO (MainThread) [homeassistant.bootstrap] Home Assistant initialized in 0.15s
+    >   2019-12-30 02:14:06 INFO (MainThread) [homeassistant.core] Starting Home Assistant
+    >   2019-12-30 02:14:06 INFO (MainThread) [homeassistant.core] Timer:starting
+
+
+# -----------------------------------------------------
+# Get the HomeAssistant DNS name.
+#[user@desktop]
+
+    ssh root@dns-one
+
+        vi /var/cache/bind/data/metagrid.co.uk.zone
+
+        +   ;
+        +   ; IoT services
+        +   $ORIGIN metagrid.co.uk.
+        +   hasst       CNAME   methionine.metagrid.co.uk.
+
+
+        systemctl restart bind9
+
+
+        host hasst
+
+    >   hasst.metagrid.co.uk is an alias for methionine.metagrid.co.uk.
+    >   methionine.metagrid.co.uk has address 10.1.0.2
+    >   methionine.metagrid.co.uk has IPv6 address 2001:8b0:be72:d4ea:a60:6eff:fe71:3c7c
+
+
+# -----------------------------------------------------
+# Connect to HomeAssistant with web browser.
+# https://www.home-assistant.io/getting-started/onboarding/
+#[user@desktop]
+
+
+    firefox "http://hasst.metagrid.co.uk:8123/" &
+
+
+# -----------------------------------------------------
+# Reset the bulb, and it should auto connect to the Zigbee network.
+# https://www.youtube.com/watch?v=4zkpZSv84H4
+#[user@desktop]
+
+
+    >   zigbee2mqtt:info  2019-12-30 03:41:18: Device '0x00158d00031ec3c7' joined
+    >   zigbee2mqtt:info  2019-12-30 03:41:18: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"device_connected","message":{"friendly_name":"0x00158d00031ec3c7"}}'
+    >   zigbee2mqtt:info  2019-12-30 03:41:18: Starting interview of '0x00158d00031ec3c7'
+    >   zigbee2mqtt:info  2019-12-30 03:41:18: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_started","meta":{"friendly_name":"0x00158d00031ec3c7"}}'
+    >   zigbee2mqtt:info  2019-12-30 03:41:19: Successfully interviewed '0x00158d00031ec3c7', device has successfully been paired
+    >   zigbee2mqtt:info  2019-12-30 03:41:19: Device '0x00158d00031ec3c7' is supported, identified as: Innr GU10 Spot (RS 225)
+    >   zigbee2mqtt:info  2019-12-30 03:41:19: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_successful","meta":{"friendly_name":"0x00158d00031ec3c7","model":"RS 225","vendor":"Innr","description":"GU10 Spot","supported":true}}'
+
+
+    >   ....
+    >   zigbee2mqtt:info  2019-12-30 13:55:23: MQTT publish: topic 'zigbee2mqtt/0x00158d00031ec3c7', payload '{"state":"ON","brightness":44}'
+    >   zigbee2mqtt:info  2019-12-30 13:55:24: MQTT publish: topic 'zigbee2mqtt/0x00158d00031ec3c7', payload '{"state":"OFF","brightness":44}'
+    >   ....
+
+
+

@@ -1,0 +1,761 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2020 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+    CC2531 Zigbee2MQTT USB Zigbee Hub
+    USB stick Zigbee chip, integrates with Zigbee2mqtt
+    https://www.cc2531.com/product/cc2531-zigbee2mqtt/
+    £12.99
+
+    Innr Smart LED Spot White GU10 (Zigbee)
+    https://www.amazon.co.uk/gp/product/B07M9CQ5X3/
+    £11.99
+
+    Zigbee 5W LED Dimmer E27 GU10 RGBW WW/CW Spotlight
+    https://www.ebay.co.uk/itm/Zigbee-5W-LED-Dimmer-E27-GU10-RGBW-WW-CW-Spotlight-link-Bulb-fr-Amazon-echo-plus/263998523999
+    Order number: 04-04340-86798
+
+    Xiaomi Aqara Wall Switch Light Remote Control ZiGBee
+    https://www.ebay.co.uk/itm/Xiaomi-Aqara-Wall-Switch-Light-Remote-Control-ZiGBee-Wifi-Double-Single-Key-ZX/223739200631
+    Order number: 04-04340-86799
+
+    Xiaomi Aqara Smart Motion Detect Sensor
+    https://www.ebay.co.uk/itm/Xiaomi-Aqara-Smart-Motion-Detect-Sensor-Vibration-Home-Real-Time-Safety-MN/223701196997
+    Order number: 04-04340-86799
+
+    Xiaomi Aqara Smart Home Zigbee Wireless Switch Touch Button
+    https://www.ebay.co.uk/itm/Xiaomi-Aqara-Smart-Home-Zigbee-Wireless-Switch-Touch-Button-Mini-Door-Bell/163784566447
+    Order number: 04-04340-86797
+
+# -----------------------------------------------------
+# Create our project config file.
+#[user@desktop]
+
+    cat > "${HOME}/erythromma.settings" << 'EOF'
+
+ERYTHROMMA_HOME=/var/local/projects/erythromma
+ERYTHROMMA_DATA=${ERYTHROMMA_HOME:?}/data
+
+mosquname=cilican
+mosqudata=${ERYTHROMMA_DATA:?}/mosqu
+
+zb2mqname=heririd
+zb2mqdata=${ERYTHROMMA_DATA:?}/zb2mq
+
+hasstname=yboakith
+hasstdata=${ERYTHROMMA_DATA:?}/hasst
+
+EOF
+
+# -----------------------------------------------------
+# Create our data directory.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    if [ ! -e "${ERYTHROMMA_DATA:?}" ]
+    then
+        mkdir -p "${ERYTHROMMA_DATA:?}"
+    fi
+
+
+# -----------------------------------------------------
+# Create our Mosquitto config file.
+# https://mosquitto.org/man/mosquitto-conf-5.html
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    if [ ! -e "${mosqudata:?}" ]
+    then
+        mkdir "${mosqudata:?}"
+    fi
+
+    cat > "${mosqudata:?}/mosquitto.conf" << EOF
+
+EOF
+
+    chmod a+rw "${mosqudata:?}/mosquitto.conf"
+
+
+# -----------------------------------------------------
+# Run Mosquitto in a Docker container.
+# https://hub.docker.com/_/eclipse-mosquitto
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    docker run \
+        --rm \
+        --tty \
+        --interactive \
+        --name "${mosquname:?}" \
+        --publish 1883:1883 \
+        --publish 9001:9001 \
+        --volume "${mosqudata:?}:/mosquitto/config" \
+        --volume /mosquitto/data \
+        --volume /mosquitto/log \
+        eclipse-mosquitto
+
+    >   1578156021: mosquitto version 1.6.8 starting
+    >   1578156021: Config loaded from /mosquitto/config/mosquitto.conf.
+    >   1578156021: Opening ipv4 listen socket on port 1883.
+    >   1578156021: Opening ipv6 listen socket on port 1883.
+    >   ....
+
+
+# -----------------------------------------------------
+# Locate our Zigbee USB stick.
+#[user@desktop]
+
+    ls -l /dev/ttyACM0
+
+    >   ls: cannot access '/dev/ttyACM0': No such file or directory
+
+    #
+    # Add USB device ...
+    #
+
+    ls -l /dev/ttyACM0
+
+
+
+# -----------------------------------------------------
+# Create our Zigbee2mqtt config file.
+# https://www.zigbee2mqtt.io/getting_started/running_zigbee2mqtt.html#3-configuring
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    if [ ! -e "${zb2mqdata:?}" ]
+    then
+        mkdir "${zb2mqdata:?}"
+    fi
+
+    cat > "${zb2mqdata:?}/configuration.yaml" << EOF
+
+# Home Assistant integration (MQTT discovery)
+homeassistant: true
+
+# allow new devices to join
+permit_join: true
+
+# MQTT settings
+mqtt:
+
+  # MQTT base topic for zigbee2mqtt MQTT messages
+  base_topic: zigbee2mqtt
+
+  # MQTT server URL
+  server: 'mqtt://${mosquname:?}'
+
+  # MQTT server authentication, uncomment if required:
+  # user: my_user
+  # password: my_password
+
+# Serial settings
+serial:
+
+  # Location of CC2531 USB sniffer
+  port: /dev/ttyACM0
+
+EOF
+
+    chmod a+rw "${zb2mqdata:?}/configuration.yaml"
+
+
+# -----------------------------------------------------
+# Run Zigbee2mqtt in a Docker container.
+# https://www.zigbee2mqtt.io/information/docker.html
+#[user@desktop]
+
+    docker run \
+        --rm \
+        --tty \
+        --interactive \
+        --name "${zb2mqname:?}" \
+        --link "${mosquname:?}" \
+       --env 'TZ=Europe/London' \
+       --device /dev/ttyACM0 \
+       --volume "${zb2mqdata:?}:/app/data" \
+       --volume /run/udev:/run/udev:ro \
+       --privileged=true \
+       koenkk/zigbee2mqtt
+
+
+    >   Using '/app/data' as data directory
+    >   
+    >   > zigbee2mqtt@1.8.0 start /app
+    >   > node index.js
+    >   
+    >   zigbee2mqtt:info  2020-01-04 16:41:46: Logging to console and directory: '/app/data/log/2020-01-04.16-41-46'
+    >   zigbee2mqtt:info  2020-01-04 16:41:46: Starting zigbee2mqtt version 1.8.0 (commit #da4d26a)
+    >   zigbee2mqtt:info  2020-01-04 16:41:46: Starting zigbee-herdsman...
+    >   zigbee2mqtt:info  2020-01-04 16:41:47: zigbee-herdsman started
+    >   zigbee2mqtt:info  2020-01-04 16:41:47: Coordinator firmware version: '{"type":"zStack12","meta":{"transportrev":2,"product":0,"majorrel":2,"minorrel":6,"maintrel":3,"revision":20190608}}'
+    >   zigbee2mqtt:info  2020-01-04 16:41:47: Currently 0 devices are joined:
+    >   zigbee2mqtt:warn  2020-01-04 16:41:47: `permit_join` set to  `true` in configuration.yaml.
+    >   zigbee2mqtt:warn  2020-01-04 16:41:47: Allowing new devices to join.
+    >   zigbee2mqtt:warn  2020-01-04 16:41:47: Set `permit_join` to `false` once you joined all devices.
+    >   zigbee2mqtt:info  2020-01-04 16:41:47: Zigbee: allowing new devices to join.
+    >   zigbee2mqtt:info  2020-01-04 16:41:47: Connecting to MQTT server at mqtt://cilican
+    >   zigbee2mqtt:info  2020-01-04 16:41:47: Connected to MQTT server
+    >   zigbee2mqtt:info  2020-01-04 16:41:47: MQTT publish: topic 'zigbee2mqtt/bridge/state', payload 'online'
+    >   zigbee2mqtt:info  2020-01-04 16:41:47: MQTT publish: topic 'zigbee2mqtt/bridge/config', payload '{"version":"1.8.0","commit":"da4d26a","coordinator":{"type":"zStack12","meta":{"transportrev":2,"product":0,"majorrel":2,"minorrel":6,"maintrel":3,"revision":20190608}},"log_level":"info","permit_join":false}'
+
+
+# -----------------------------------------------------
+# Create our HomeAssistant config file.
+# https://www.home-assistant.io/docs/configuration/basic/
+# https://www.zigbee2mqtt.io/integration/home_assistant
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    if [ ! -e "${hasstdata:?}" ]
+    then
+        mkdir "${hasstdata:?}"
+    fi
+
+    cat > "${hasstdata:?}/configuration.yaml" << EOF
+
+default_config:
+
+homeassistant:
+    latitude:  50.6331828
+    longitude: -3.3327239
+    elevation: 17
+    unit_system: metric
+    time_zone: Europe/London
+    name: EX96PU
+
+mqtt:
+  broker: ${mosquname}
+  discovery: true
+  birth_message:
+    topic:   'hass/status'
+    payload: 'online'
+  will_message:
+    topic:   'hass/status'
+    payload: 'offline'
+
+
+logger:
+  default: debug
+  logs:
+    homeassistant.components.yamaha: debug
+
+EOF
+
+    chmod a+rw "${hasstdata:?}/configuration.yaml"
+
+
+# -----------------------------------------------------
+# Run HomeAssistant in a Docker container.
+# https://www.home-assistant.io/docs/installation/docker/
+#[user@desktop]
+
+    docker run \
+        --rm \
+        --tty \
+        --init \
+        --interactive \
+        --name "${hasstname:?}" \
+        --link "${mosquname:?}" \
+        --publish 8123:8123 \
+        --env 'TZ=Europe/London' \
+        --volume "${hasstdata:?}:/config" \
+        homeassistant/home-assistant:stable
+
+
+    >   starting version 3.2.8
+    >   Config directory: /config
+    >   2020-01-04 16:43:26 INFO (SyncWorker_0) [homeassistant.config] Upgrading configuration directory from 0.7.7 to 0.103.5
+    >   2020-01-04 16:43:26 INFO (SyncWorker_0) [homeassistant.loader] Loaded mqtt from homeassistant.components.mqtt
+    >   2020-01-04 16:43:26 INFO (SyncWorker_6) [homeassistant.loader] Loaded logger from homeassistant.components.logger
+    >   2020-01-04 16:43:26 INFO (SyncWorker_7) [homeassistant.loader] Loaded default_config from homeassistant.components.default_config
+    >   2020-01-04 16:43:26 INFO (SyncWorker_3) [homeassistant.loader] Loaded homeassistant from homeassistant.components.homeassistant
+    >   2020-01-04 16:43:26 INFO (SyncWorker_10) [homeassistant.loader] Loaded http from homeassistant.components.http
+    >   2020-01-04 16:43:26 INFO (SyncWorker_9) [homeassistant.loader] Loaded persistent_notification from homeassistant.components.persistent_notification
+    >   2020-01-04 16:43:26 INFO (SyncWorker_11) [homeassistant.loader] Loaded automation from homeassistant.components.automation
+    >   ....
+    >   ....
+    >   2020-01-04 16:43:29 DEBUG (MainThread) [homeassistant.bootstrap] Final set up: {'logbook'}
+    >   2020-01-04 16:43:34 INFO (MainThread) [homeassistant.bootstrap] Home Assistant initialized in 7.63s
+    >   2020-01-04 16:43:34 INFO (MainThread) [homeassistant.core] Starting Home Assistant
+    >   2020-01-04 16:43:34 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event homeassistant_start[L]>
+    >   2020-01-04 16:43:34 INFO (MainThread) [homeassistant.core] Timer:starting
+    >   2020-01-04 16:43:34 INFO (SyncWorker_15) [homeassistant.components.zeroconf] Starting Zeroconf broadcast
+    >   2020-01-04 16:43:35 DEBUG (SyncWorker_1) [homeassistant.helpers.storage] Writing data for core.config_entries
+    >   2020-01-04 16:43:39 DEBUG (SyncWorker_0) [homeassistant.helpers.storage] Writing data for core.entity_registry
+    >   2020-01-04 16:44:35 DEBUG (MainThread) [homeassistant.components.ssdp] Scanning
+
+
+# -----------------------------------------------------
+# Check the HomeAssistant DNS name.
+#[user@desktop]
+
+    host hasst
+
+    >   hasst.metagrid.co.uk is an alias for methionine.metagrid.co.uk.
+    >   methionine.metagrid.co.uk has address 10.1.0.2
+    >   methionine.metagrid.co.uk has IPv6 address 2001:8b0:be72:d4ea:a60:6eff:fe71:3c7c
+
+
+# -----------------------------------------------------
+# Connect to HomeAssistant with web browser.
+# https://www.home-assistant.io/getting-started/onboarding/
+#[user@desktop]
+
+    firefox "http://hasst.metagrid.co.uk:8123/" &
+
+
+# -----------------------------------------------------
+# Reset the Innr Smart Spot, and it should auto connect to the Zigbee network.
+# https://www.youtube.com/watch?v=4zkpZSv84H4
+# (on/off > 6)
+#[user@desktop]
+
+    >   zigbee2mqtt:warn  2020-01-04 16:57:34: Device '0x00158d00031ec3c7' left the network
+    >   zigbee2mqtt:info  2020-01-04 16:57:34: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"device_removed","message":"left_network","meta":{"friendly_name":"0x00158d00031ec3c7"}}'
+    >   zigbee2mqtt:info  2020-01-04 16:57:38: Device '0x00158d00031ec3c7' joined
+    >   zigbee2mqtt:info  2020-01-04 16:57:38: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"device_connected","message":{"friendly_name":"0x00158d00031ec3c7"}}'
+    >   zigbee2mqtt:info  2020-01-04 16:57:38: Starting interview of '0x00158d00031ec3c7'
+    >   zigbee2mqtt:info  2020-01-04 16:57:38: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_started","meta":{"friendly_name":"0x00158d00031ec3c7"}}'
+    >   zigbee2mqtt:info  2020-01-04 16:57:38: MQTT publish: topic 'homeassistant/light/0x00158d00031ec3c7/light/config', payload '{"brightness":true,"schema":"json","command_topic":"zigbee2mqtt/0x00158d00031ec3c7/set","state_topic":"zigbee2mqtt/0x00158d00031ec3c7","json_attributes_topic":"zigbee2mqtt/0x00158d00031ec3c7","name":"0x00158d00031ec3c7_light","unique_id":"0x00158d00031ec3c7_light_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d00031ec3c7"],"name":"0x00158d00031ec3c7","sw_version":"Zigbee2mqtt 1.8.0","model":"GU10 Spot (RS 225)","manufacturer":"Innr"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-04 16:57:38: MQTT publish: topic 'homeassistant/sensor/0x00158d00031ec3c7/linkquality/config', payload '{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00158d00031ec3c7","json_attributes_topic":"zigbee2mqtt/0x00158d00031ec3c7","name":"0x00158d00031ec3c7_linkquality","unique_id":"0x00158d00031ec3c7_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d00031ec3c7"],"name":"0x00158d00031ec3c7","sw_version":"Zigbee2mqtt 1.8.0","model":"GU10 Spot (RS 225)","manufacturer":"Innr"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-04 16:57:38: Successfully interviewed '0x00158d00031ec3c7', device has successfully been paired
+    >   zigbee2mqtt:info  2020-01-04 16:57:38: Device '0x00158d00031ec3c7' is supported, identified as: Innr GU10 Spot (RS 225)
+    >   zigbee2mqtt:info  2020-01-04 16:57:38: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_successful","meta":{"friendly_name":"0x00158d00031ec3c7","model":"RS 225","vendor":"Innr","description":"GU10 Spot","supported":true}}'
+
+    >   2020-01-04 16:57:23 DEBUG (MainThread) [homeassistant.components.ssdp] Scanning
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/light/0x00158d00031ec3c7/light/config: b'{"brightness":true,"schema":"json","command_topic":"zigbee2mqtt/0x00158d00031ec3c7/set","state_topic":"zigbee2mqtt/0x00158d00031ec3c7","json_attributes_topic":"zigbee2mqtt/0x00158d00031ec3c7","name":"0x00158d00031ec3c7_light","unique_id":"0x00158d00031ec3c7_light_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d00031ec3c7"],"name":"0x00158d00031ec3c7","sw_version":"Zigbee2mqtt 1.8.0","model":"GU10 Spot (RS 225)","manufacturer":"Innr"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 16:57:38 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: light 0x00158d00031ec3c7 light
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00158d00031ec3c7/linkquality/config: b'{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00158d00031ec3c7","json_attributes_topic":"zigbee2mqtt/0x00158d00031ec3c7","name":"0x00158d00031ec3c7_linkquality","unique_id":"0x00158d00031ec3c7_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d00031ec3c7"],"name":"0x00158d00031ec3c7","sw_version":"Zigbee2mqtt 1.8.0","model":"GU10 Spot (RS 225)","manufacturer":"Innr"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 16:57:38 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: sensor 0x00158d00031ec3c7 linkquality
+    >   2020-01-04 16:57:38 INFO (SyncWorker_15) [homeassistant.loader] Loaded light from homeassistant.components.light
+    >   2020-01-04 16:57:38 INFO (MainThread) [homeassistant.setup] Setting up light
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event service_registered[L]: domain=light, service=turn_on>
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event service_registered[L]: domain=light, service=turn_off>
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event service_registered[L]: domain=light, service=toggle>
+    >   2020-01-04 16:57:38 INFO (MainThread) [homeassistant.setup] Setup of domain light took 0.0 seconds.
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event component_loaded[L]: component=light>
+    >   2020-01-04 16:57:38 INFO (MainThread) [homeassistant.components.light] Setting up light.mqtt
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 5, 'type': 'event', 'event': {'event_type': 'service_registered', 'data': {'domain': 'light', 'service': 'turn_on'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 16, 57, 38, 495177, tzinfo=<UTC>), 'context': {'id': 'e3559f9466e54dc49c9f3d39df0678e1', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 5, 'type': 'event', 'event': {'event_type': 'service_registered', 'data': {'domain': 'light', 'service': 'turn_off'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 16, 57, 38, 496312, tzinfo=<UTC>), 'context': {'id': 'a7166c78e23340c7870c5448ee2f97ba', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 5, 'type': 'event', 'event': {'event_type': 'service_registered', 'data': {'domain': 'light', 'service': 'toggle'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 16, 57, 38, 497219, tzinfo=<UTC>), 'context': {'id': '378e8a83cd034e25b2c5d0f756b81721', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 3, 'type': 'event', 'event': {'event_type': 'component_loaded', 'data': {'component': 'light'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 16, 57, 38, 497636, tzinfo=<UTC>), 'context': {'id': 'f479fca48e6046aa95f182064e3f9e0f', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event device_registry_updated[L]: action=create, device_id=1c180636db5246abadddd1935eebe29f>
+    >   2020-01-04 16:57:38 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new light.mqtt entity: light.0x00158d00031ec3c7_light
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=light.0x00158d00031ec3c7_light>
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 12, 'type': 'event', 'event': {'event_type': 'device_registry_updated', 'data': {'action': 'create', 'device_id': '1c180636db5246abadddd1935eebe29f'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 16, 57, 38, 535215, tzinfo=<UTC>), 'context': {'id': 'ef52ac1ee8e14d3e93d146b7b038e8d1', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 16:57:38 INFO (SyncWorker_13) [homeassistant.loader] Loaded sensor from homeassistant.components.sensor
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 13, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'light.0x00158d00031ec3c7_light'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 16, 57, 38, 536158, tzinfo=<UTC>), 'context': {'id': '4449f6f145ff479395ecaf243c0d8b62', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 16:57:38 INFO (MainThread) [homeassistant.setup] Setting up sensor
+    >   2020-01-04 16:57:38 INFO (MainThread) [homeassistant.setup] Setup of domain sensor took 0.0 seconds.
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event component_loaded[L]: component=sensor>
+    >   2020-01-04 16:57:38 INFO (MainThread) [homeassistant.components.sensor] Setting up sensor.mqtt
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 3, 'type': 'event', 'event': {'event_type': 'component_loaded', 'data': {'component': 'sensor'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 16, 57, 38, 541885, tzinfo=<UTC>), 'context': {'id': '1a28ad5b78d145a981be484da444a65a', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d00031ec3c7
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Received {'type': 'config/device_registry/list', 'id': 36}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Received {'type': 'config/entity_registry/list', 'id': 37}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 36, 'type': 'result', 'success': True, 'result': [{'config_entries': ['72eb85321cab489bbdcbde18f4838c8d'], 'connections': [], 'manufacturer': 'Innr', 'model': 'GU10 Spot (RS 225)', 'name': '0x00158d00031ec3c7', 'sw_version': 'Zigbee2mqtt 1.8.0', 'id': '1c180636db5246abadddd1935eebe29f', 'via_device_id': None, 'area_id': None, 'name_by_user': None}]}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 37, 'type': 'result', 'success': True, 'result': [{'config_entry_id': None, 'device_id': None, 'disabled_by': None, 'entity_id': 'binary_sensor.updater', 'name': None, 'platform': 'updater'}, {'config_entry_id': None, 'device_id': None, 'disabled_by': None, 'entity_id': 'person.zarquan', 'name': None, 'platform': 'person'}, {'config_entry_id': '7be34e2b833e4a0b84e45a077db2e0eb', 'device_id': None, 'disabled_by': None, 'entity_id': 'weather.home', 'name': None, 'platform': 'met'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': '1c180636db5246abadddd1935eebe29f', 'disabled_by': None, 'entity_id': 'light.0x00158d00031ec3c7_light', 'name': None, 'platform': 'mqtt'}]}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=light.0x00158d00031ec3c7_light, old_state=None, new_state=<state light.0x00158d00031ec3c7_light=off; friendly_name=0x00158d00031ec3c7_light, supported_features=41 @ 2020-01-04T16:57:38.562826+00:00>>
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d00031ec3c7
+    >   2020-01-04 16:57:38 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new sensor.mqtt entity: sensor.0x00158d00031ec3c7_linkquality
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=sensor.0x00158d00031ec3c7_linkquality>
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=light.0x00158d00031ec3c7_light, old_state=None, new_state=<state light.0x00158d00031ec3c7_light=off; friendly_name=0x00158d00031ec3c7_light, supported_features=41 @ 2020-01-04T16:57:38.562826+00:00>>}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 13, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'sensor.0x00158d00031ec3c7_linkquality'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 16, 57, 38, 564177, tzinfo=<UTC>), 'context': {'id': '5cd2c6b038f9449b86bee985f3b0e4d5', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event call_service[L]: domain=group, service=set, service_data=object_id=all_lights, name=all lights, visible=False, entities=['light.0x00158d00031ec3c7_light']>
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=group.all_lights, old_state=None, new_state=<state group.all_lights=off; entity_id=('light.0x00158d00031ec3c7_light',), order=0, auto=True, friendly_name=all lights, hidden=True @ 2020-01-04T16:57:38.570497+00:00>>
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d00031ec3c7
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d00031ec3c7_linkquality, old_state=None, new_state=<state sensor.0x00158d00031ec3c7_linkquality=unknown; unit_of_measurement=-, friendly_name=0x00158d00031ec3c7_linkquality @ 2020-01-04T16:57:38.574554+00:00>>
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=group.all_lights, old_state=None, new_state=<state group.all_lights=off; entity_id=('light.0x00158d00031ec3c7_light',), order=0, auto=True, friendly_name=all lights, hidden=True @ 2020-01-04T16:57:38.570497+00:00>>}
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d00031ec3c7
+    >   2020-01-04 16:57:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d00031ec3c7_linkquality, old_state=None, new_state=<state sensor.0x00158d00031ec3c7_linkquality=unknown; unit_of_measurement=-, friendly_name=0x00158d00031ec3c7_linkquality @ 2020-01-04T16:57:38.574554+00:00>>}
+    >   2020-01-04 16:57:49 DEBUG (SyncWorker_11) [homeassistant.helpers.storage] Writing data for core.device_registry
+    >   2020-01-04 16:57:49 DEBUG (SyncWorker_8) [homeassistant.helpers.storage] Writing data for core.entity_registry
+    >   2020-01-04 16:58:24 DEBUG (MainThread) [homeassistant.components.ssdp] Scanning
+
+
+# -----------------------------------------------------
+# Reset the Xiaomi Touch Button, and it should auto connect to the Zigbee network.
+# long press (>10s)
+#[user@desktop]
+
+    >   igbee2mqtt:info  2020-01-04 17:09:38: Device '0x00158d0003614c58' joined
+    >   zigbee2mqtt:info  2020-01-04 17:09:38: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"device_connected","message":{"friendly_name":"0x00158d0003614c58"}}'
+    >   zigbee2mqtt:info  2020-01-04 17:09:38: Starting interview of '0x00158d0003614c58'
+    >   zigbee2mqtt:info  2020-01-04 17:09:38: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_started","meta":{"friendly_name":"0x00158d0003614c58"}}'
+    >   zigbee2mqtt:info  2020-01-04 17:09:38: MQTT publish: topic 'homeassistant/sensor/0x00158d0003614c58/click/config', payload '{"icon":"mdi:toggle-switch","value_template":"{{ value_json.click }}","state_topic":"zigbee2mqtt/0x00158d0003614c58","json_attributes_topic":"zigbee2mqtt/0x00158d0003614c58","name":"0x00158d0003614c58_click","unique_id":"0x00158d0003614c58_click_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d0003614c58"],"name":"0x00158d0003614c58","sw_version":"Zigbee2mqtt 1.8.0","model":"MiJia wireless switch (WXKG01LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-04 17:09:38: MQTT publish: topic 'homeassistant/sensor/0x00158d0003614c58/battery/config', payload '{"unit_of_measurement":"%","device_class":"battery","value_template":"{{ value_json.battery }}","state_topic":"zigbee2mqtt/0x00158d0003614c58","json_attributes_topic":"zigbee2mqtt/0x00158d0003614c58","name":"0x00158d0003614c58_battery","unique_id":"0x00158d0003614c58_battery_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d0003614c58"],"name":"0x00158d0003614c58","sw_version":"Zigbee2mqtt 1.8.0","model":"MiJia wireless switch (WXKG01LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-04 17:09:38: MQTT publish: topic 'homeassistant/sensor/0x00158d0003614c58/linkquality/config', payload '{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00158d0003614c58","json_attributes_topic":"zigbee2mqtt/0x00158d0003614c58","name":"0x00158d0003614c58_linkquality","unique_id":"0x00158d0003614c58_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d0003614c58"],"name":"0x00158d0003614c58","sw_version":"Zigbee2mqtt 1.8.0","model":"MiJia wireless switch (WXKG01LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-04 17:09:48: Successfully interviewed '0x00158d0003614c58', device has successfully been paired
+    >   zigbee2mqtt:info  2020-01-04 17:09:48: Device '0x00158d0003614c58' is supported, identified as: Xiaomi MiJia wireless switch (WXKG01LM)
+    >   zigbee2mqtt:info  2020-01-04 17:09:48: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_successful","meta":{"friendly_name":"0x00158d0003614c58","model":"WXKG01LM","vendor":"Xiaomi","description":"MiJia wireless switch","supported":true}}'
+
+    >   2020-01-04 17:09:32 DEBUG (MainThread) [homeassistant.components.ssdp] Scanning
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00158d0003614c58/click/config: b'{"icon":"mdi:toggle-switch","value_template":"{{ value_json.click }}","state_topic":"zigbee2mqtt/0x00158d0003614c58","json_attributes_topic":"zigbee2mqtt/0x00158d0003614c58","name":"0x00158d0003614c58_click","unique_id":"0x00158d0003614c58_click_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d0003614c58"],"name":"0x00158d0003614c58","sw_version":"Zigbee2mqtt 1.8.0","model":"MiJia wireless switch (WXKG01LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 17:09:38 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: sensor 0x00158d0003614c58 click
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00158d0003614c58/battery/config: b'{"unit_of_measurement":"%","device_class":"battery","value_template":"{{ value_json.battery }}","state_topic":"zigbee2mqtt/0x00158d0003614c58","json_attributes_topic":"zigbee2mqtt/0x00158d0003614c58","name":"0x00158d0003614c58_battery","unique_id":"0x00158d0003614c58_battery_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d0003614c58"],"name":"0x00158d0003614c58","sw_version":"Zigbee2mqtt 1.8.0","model":"MiJia wireless switch (WXKG01LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00158d0003614c58/linkquality/config: b'{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00158d0003614c58","json_attributes_topic":"zigbee2mqtt/0x00158d0003614c58","name":"0x00158d0003614c58_linkquality","unique_id":"0x00158d0003614c58_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d0003614c58"],"name":"0x00158d0003614c58","sw_version":"Zigbee2mqtt 1.8.0","model":"MiJia wireless switch (WXKG01LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 17:09:38 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: sensor 0x00158d0003614c58 battery
+    >   2020-01-04 17:09:38 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: sensor 0x00158d0003614c58 linkquality
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event device_registry_updated[L]: action=create, device_id=a8a9619c0b374b8b97a03968864d40ab>
+    >   2020-01-04 17:09:38 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new sensor.mqtt entity: sensor.0x00158d0003614c58_click
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=sensor.0x00158d0003614c58_click>
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 17:09:38 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new sensor.mqtt entity: sensor.0x00158d0003614c58_battery
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=sensor.0x00158d0003614c58_battery>
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 17:09:38 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new sensor.mqtt entity: sensor.0x00158d0003614c58_linkquality
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=sensor.0x00158d0003614c58_linkquality>
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 12, 'type': 'event', 'event': {'event_type': 'device_registry_updated', 'data': {'action': 'create', 'device_id': 'a8a9619c0b374b8b97a03968864d40ab'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 17, 9, 38, 843642, tzinfo=<UTC>), 'context': {'id': '1a34d56a200d41afaa08f22ea4638d6a', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 13, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'sensor.0x00158d0003614c58_click'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 17, 9, 38, 844293, tzinfo=<UTC>), 'context': {'id': '1a2e9a2a3c894fad92db177470f106c1', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d0003614c58
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 13, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'sensor.0x00158d0003614c58_battery'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 17, 9, 38, 846539, tzinfo=<UTC>), 'context': {'id': 'ad7b3a532d034d15b54d26fc34cafaaa', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 13, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'sensor.0x00158d0003614c58_linkquality'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 17, 9, 38, 850055, tzinfo=<UTC>), 'context': {'id': 'dee22a02c8144bdb95b5b67e0e101edb', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d0003614c58_click, old_state=None, new_state=<state sensor.0x00158d0003614c58_click=unknown; friendly_name=0x00158d0003614c58_click, icon=mdi:toggle-switch @ 2020-01-04T17:09:38.855478+00:00>>
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d0003614c58_battery, old_state=None, new_state=<state sensor.0x00158d0003614c58_battery=unknown; unit_of_measurement=%, friendly_name=0x00158d0003614c58_battery, device_class=battery @ 2020-01-04T17:09:38.856191+00:00>>
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d0003614c58_linkquality, old_state=None, new_state=<state sensor.0x00158d0003614c58_linkquality=unknown; unit_of_measurement=-, friendly_name=0x00158d0003614c58_linkquality @ 2020-01-04T17:09:38.856751+00:00>>
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d0003614c58_click, old_state=None, new_state=<state sensor.0x00158d0003614c58_click=unknown; friendly_name=0x00158d0003614c58_click, icon=mdi:toggle-switch @ 2020-01-04T17:09:38.855478+00:00>>}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d0003614c58_battery, old_state=None, new_state=<state sensor.0x00158d0003614c58_battery=unknown; unit_of_measurement=%, friendly_name=0x00158d0003614c58_battery, device_class=battery @ 2020-01-04T17:09:38.856191+00:00>>}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d0003614c58_linkquality, old_state=None, new_state=<state sensor.0x00158d0003614c58_linkquality=unknown; unit_of_measurement=-, friendly_name=0x00158d0003614c58_linkquality @ 2020-01-04T17:09:38.856751+00:00>>}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Received {'type': 'config/device_registry/list', 'id': 60}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Received {'type': 'config/entity_registry/list', 'id': 61}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d0003614c58
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 60, 'type': 'result', 'success': True, 'result': [{'config_entries': ['72eb85321cab489bbdcbde18f4838c8d'], 'connections': [], 'manufacturer': 'Innr', 'model': 'GU10 Spot (RS 225)', 'name': '0x00158d00031ec3c7', 'sw_version': 'Zigbee2mqtt 1.8.0', 'id': '1c180636db5246abadddd1935eebe29f', 'via_device_id': None, 'area_id': None, 'name_by_user': None}, {'config_entries': ['72eb85321cab489bbdcbde18f4838c8d'], 'connections': [], 'manufacturer': 'Xiaomi', 'model': 'MiJia wireless switch (WXKG01LM)', 'name': '0x00158d0003614c58', 'sw_version': 'Zigbee2mqtt 1.8.0', 'id': 'a8a9619c0b374b8b97a03968864d40ab', 'via_device_id': None, 'area_id': None, 'name_by_user': None}]}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 61, 'type': 'result', 'success': True, 'result': [{'config_entry_id': None, 'device_id': None, 'disabled_by': None, 'entity_id': 'binary_sensor.updater', 'name': None, 'platform': 'updater'}, {'config_entry_id': None, 'device_id': None, 'disabled_by': None, 'entity_id': 'person.zarquan', 'name': None, 'platform': 'person'}, {'config_entry_id': '7be34e2b833e4a0b84e45a077db2e0eb', 'device_id': None, 'disabled_by': None, 'entity_id': 'weather.home', 'name': None, 'platform': 'met'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': '1c180636db5246abadddd1935eebe29f', 'disabled_by': None, 'entity_id': 'light.0x00158d00031ec3c7_light', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': '1c180636db5246abadddd1935eebe29f', 'disabled_by': None, 'entity_id': 'sensor.0x00158d00031ec3c7_linkquality', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'a8a9619c0b374b8b97a03968864d40ab', 'disabled_by': None, 'entity_id': 'sensor.0x00158d0003614c58_click', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'a8a9619c0b374b8b97a03968864d40ab', 'disabled_by': None, 'entity_id': 'sensor.0x00158d0003614c58_battery', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'a8a9619c0b374b8b97a03968864d40ab', 'disabled_by': None, 'entity_id': 'sensor.0x00158d0003614c58_linkquality', 'name': None, 'platform': 'mqtt'}]}
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d0003614c58
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d0003614c58
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d0003614c58
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 17:09:38 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d0003614c58
+    >   2020-01-04 17:09:49 DEBUG (SyncWorker_19) [homeassistant.helpers.storage] Writing data for core.device_registry
+    >   2020-01-04 17:09:49 DEBUG (SyncWorker_14) [homeassistant.helpers.storage] Writing data for core.entity_registry
+
+    #
+    # Light works.
+    # Button works.
+    # Automation with button and light fails - can't save the automation in the editor.
+    #
+
+    >   2020-01-04 17:20:20 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Received {'type': 'call_service', 'domain': 'system_log', 'service': 'write', 'service_data': {'logger': 'frontend.js.latest.201912041', 'message': 'http://hasst.metagrid.co.uk:8123/frontend_latest/chunk.9a97b6251e6645f09091.js:2655:1959 TypeError: this.automation is null'}, 'id': 111}
+    >   2020-01-04 17:20:20 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event call_service[L]: domain=system_log, service=write, service_data=logger=frontend.js.latest.201912041, message=http://hasst.metagrid.co.uk:8123/frontend_latest/chunk.9a97b6251e6645f09091.js:2655:1959 TypeError: this.automation is null>
+    >   2020-01-04 17:20:20 ERROR (MainThread) [frontend.js.latest.201912041] http://hasst.metagrid.co.uk:8123/frontend_latest/chunk.9a97b6251e6645f09091.js:2655:1959 TypeError: this.automation is null
+    >   2020-01-04 17:20:20 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 111, 'type': 'result', 'success': True, 'result': {'context': Context(user_id='e853c078318e4e13a5d7cfe7198205fc', parent_id=None, id='c613c5fbfd31448fbc930ca851d9aa2c')}}
+    >   2020-01-04 17:20:42 DEBUG (MainThread) [homeassistant.components.ssdp] Scanning
+    >   2020-01-04 17:20:45 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Received {'type': 'call_service', 'domain': 'system_log', 'service': 'write', 'service_data': {'logger': 'frontend.js.latest.201912041', 'message': 'http://hasst.metagrid.co.uk:8123/frontend_latest/chunk.9a97b6251e6645f09091.js:2655:1959 TypeError: this.automation is null'}, 'id': 112}
+    >   2020-01-04 17:20:45 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event call_service[L]: domain=system_log, service=write, service_data=logger=frontend.js.latest.201912041, message=http://hasst.metagrid.co.uk:8123/frontend_latest/chunk.9a97b6251e6645f09091.js:2655:1959 TypeError: this.automation is null>
+    >   2020-01-04 17:20:45 ERROR (MainThread) [frontend.js.latest.201912041] http://hasst.metagrid.co.uk:8123/frontend_latest/chunk.9a97b6251e6645f09091.js:2655:1959 TypeError: this.automation is null
+    >   2020-01-04 17:20:45 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272312914192] Sending {'id': 112, 'type': 'result', 'success': True, 'result': {'context': Context(user_id='e853c078318e4e13a5d7cfe7198205fc', parent_id=None, id='9ec0764611e343c78d07335d62fc5f52')}}
+
+
+
+# -----------------------------------------------------
+# Reset the Xiaomi Wall switch, and it should auto connect to the Zigbee network.
+# long press (>10s)
+#[user@desktop]
+
+    >   zigbee2mqtt:info  2020-01-04 17:32:42: Device '0x00158d000322d1cf' joined
+    >   zigbee2mqtt:info  2020-01-04 17:32:42: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"device_connected","message":{"friendly_name":"0x00158d000322d1cf"}}'
+    >   zigbee2mqtt:info  2020-01-04 17:32:42: Starting interview of '0x00158d000322d1cf'
+    >   zigbee2mqtt:info  2020-01-04 17:32:42: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_started","meta":{"friendly_name":"0x00158d000322d1cf"}}'
+    >   zigbee2mqtt:info  2020-01-04 17:32:42: MQTT publish: topic 'homeassistant/sensor/0x00158d000322d1cf/click/config', payload '{"icon":"mdi:toggle-switch","value_template":"{{ value_json.click }}","state_topic":"zigbee2mqtt/0x00158d000322d1cf","json_attributes_topic":"zigbee2mqtt/0x00158d000322d1cf","name":"0x00158d000322d1cf_click","unique_id":"0x00158d000322d1cf_click_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d000322d1cf"],"name":"0x00158d000322d1cf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara single key wireless wall switch (WXKG03LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-04 17:32:42: MQTT publish: topic 'homeassistant/sensor/0x00158d000322d1cf/battery/config', payload '{"unit_of_measurement":"%","device_class":"battery","value_template":"{{ value_json.battery }}","state_topic":"zigbee2mqtt/0x00158d000322d1cf","json_attributes_topic":"zigbee2mqtt/0x00158d000322d1cf","name":"0x00158d000322d1cf_battery","unique_id":"0x00158d000322d1cf_battery_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d000322d1cf"],"name":"0x00158d000322d1cf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara single key wireless wall switch (WXKG03LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-04 17:32:42: MQTT publish: topic 'homeassistant/sensor/0x00158d000322d1cf/action/config', payload '{"icon":"mdi:gesture-double-tap","value_template":"{{ value_json.action }}","state_topic":"zigbee2mqtt/0x00158d000322d1cf","json_attributes_topic":"zigbee2mqtt/0x00158d000322d1cf","name":"0x00158d000322d1cf_action","unique_id":"0x00158d000322d1cf_action_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d000322d1cf"],"name":"0x00158d000322d1cf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara single key wireless wall switch (WXKG03LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-04 17:32:42: MQTT publish: topic 'homeassistant/sensor/0x00158d000322d1cf/linkquality/config', payload '{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00158d000322d1cf","json_attributes_topic":"zigbee2mqtt/0x00158d000322d1cf","name":"0x00158d000322d1cf_linkquality","unique_id":"0x00158d000322d1cf_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d000322d1cf"],"name":"0x00158d000322d1cf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara single key wireless wall switch (WXKG03LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+
+
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00158d000322d1cf/click/config: b'{"icon":"mdi:toggle-switch","value_template":"{{ value_json.click }}","state_topic":"zigbee2mqtt/0x00158d000322d1cf","json_attributes_topic":"zigbee2mqtt/0x00158d000322d1cf","name":"0x00158d000322d1cf_click","unique_id":"0x00158d000322d1cf_click_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d000322d1cf"],"name":"0x00158d000322d1cf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara single key wireless wall switch (WXKG03LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 17:32:42 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: sensor 0x00158d000322d1cf click
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00158d000322d1cf/battery/config: b'{"unit_of_measurement":"%","device_class":"battery","value_template":"{{ value_json.battery }}","state_topic":"zigbee2mqtt/0x00158d000322d1cf","json_attributes_topic":"zigbee2mqtt/0x00158d000322d1cf","name":"0x00158d000322d1cf_battery","unique_id":"0x00158d000322d1cf_battery_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d000322d1cf"],"name":"0x00158d000322d1cf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara single key wireless wall switch (WXKG03LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00158d000322d1cf/action/config: b'{"icon":"mdi:gesture-double-tap","value_template":"{{ value_json.action }}","state_topic":"zigbee2mqtt/0x00158d000322d1cf","json_attributes_topic":"zigbee2mqtt/0x00158d000322d1cf","name":"0x00158d000322d1cf_action","unique_id":"0x00158d000322d1cf_action_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d000322d1cf"],"name":"0x00158d000322d1cf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara single key wireless wall switch (WXKG03LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00158d000322d1cf/linkquality/config: b'{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00158d000322d1cf","json_attributes_topic":"zigbee2mqtt/0x00158d000322d1cf","name":"0x00158d000322d1cf_linkquality","unique_id":"0x00158d000322d1cf_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00158d000322d1cf"],"name":"0x00158d000322d1cf","sw_version":"Zigbee2mqtt 1.8.0","model":"Aqara single key wireless wall switch (WXKG03LM)","manufacturer":"Xiaomi"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 17:32:42 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: sensor 0x00158d000322d1cf battery
+    >   2020-01-04 17:32:42 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: sensor 0x00158d000322d1cf action
+    >   2020-01-04 17:32:42 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: sensor 0x00158d000322d1cf linkquality
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event device_registry_updated[L]: action=create, device_id=d45e4b305f4e44408e4aee99d3ed6a2f>
+    >   2020-01-04 17:32:42 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new sensor.mqtt entity: sensor.0x00158d000322d1cf_click
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=sensor.0x00158d000322d1cf_click>
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 17:32:42 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new sensor.mqtt entity: sensor.0x00158d000322d1cf_battery
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=sensor.0x00158d000322d1cf_battery>
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 17:32:42 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new sensor.mqtt entity: sensor.0x00158d000322d1cf_action
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=sensor.0x00158d000322d1cf_action>
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 17:32:42 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new sensor.mqtt entity: sensor.0x00158d000322d1cf_linkquality
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=sensor.0x00158d000322d1cf_linkquality>
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 50, 'type': 'event', 'event': {'event_type': 'device_registry_updated', 'data': {'action': 'create', 'device_id': 'd45e4b305f4e44408e4aee99d3ed6a2f'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 17, 32, 42, 717930, tzinfo=<UTC>), 'context': {'id': '879a5adbab6c41e5b5ee99eb81406c18', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 52, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'sensor.0x00158d000322d1cf_click'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 17, 32, 42, 718575, tzinfo=<UTC>), 'context': {'id': '5c5079be29134156bf612c9d1de99549', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d000322d1cf
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 52, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'sensor.0x00158d000322d1cf_battery'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 17, 32, 42, 720995, tzinfo=<UTC>), 'context': {'id': '4bbea9b12d494d0291ef3f2bdc13b673', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 52, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'sensor.0x00158d000322d1cf_action'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 17, 32, 42, 724992, tzinfo=<UTC>), 'context': {'id': '4c2e7bfbb6644b6fb31a9455211ae673', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 52, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'sensor.0x00158d000322d1cf_linkquality'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 17, 32, 42, 726645, tzinfo=<UTC>), 'context': {'id': '7ed6c874d38349868f1bb7cc5f4d92a6', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Received {'type': 'config/device_registry/list', 'id': 54}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Received {'type': 'config/entity_registry/list', 'id': 55}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d000322d1cf
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 54, 'type': 'result', 'success': True, 'result': [{'config_entries': ['72eb85321cab489bbdcbde18f4838c8d'], 'connections': [], 'manufacturer': 'Innr', 'model': 'GU10 Spot (RS 225)', 'name': '0x00158d00031ec3c7', 'sw_version': 'Zigbee2mqtt 1.8.0', 'id': '1c180636db5246abadddd1935eebe29f', 'via_device_id': None, 'area_id': None, 'name_by_user': None}, {'config_entries': ['72eb85321cab489bbdcbde18f4838c8d'], 'connections': [], 'manufacturer': 'Xiaomi', 'model': 'MiJia wireless switch (WXKG01LM)', 'name': '0x00158d0003614c58', 'sw_version': 'Zigbee2mqtt 1.8.0', 'id': 'a8a9619c0b374b8b97a03968864d40ab', 'via_device_id': None, 'area_id': None, 'name_by_user': None}, {'config_entries': ['72eb85321cab489bbdcbde18f4838c8d'], 'connections': [], 'manufacturer': 'Xiaomi', 'model': 'Aqara single key wireless wall switch (WXKG03LM)', 'name': '0x00158d000322d1cf', 'sw_version': 'Zigbee2mqtt 1.8.0', 'id': 'd45e4b305f4e44408e4aee99d3ed6a2f', 'via_device_id': None, 'area_id': None, 'name_by_user': None}]}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 55, 'type': 'result', 'success': True, 'result': [{'config_entry_id': None, 'device_id': None, 'disabled_by': None, 'entity_id': 'binary_sensor.updater', 'name': None, 'platform': 'updater'}, {'config_entry_id': None, 'device_id': None, 'disabled_by': None, 'entity_id': 'person.zarquan', 'name': None, 'platform': 'person'}, {'config_entry_id': '7be34e2b833e4a0b84e45a077db2e0eb', 'device_id': None, 'disabled_by': None, 'entity_id': 'weather.home', 'name': 'Weather', 'platform': 'met'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': '1c180636db5246abadddd1935eebe29f', 'disabled_by': None, 'entity_id': 'light.0x00158d00031ec3c7_light', 'name': 'GU10 Spot (white)', 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': '1c180636db5246abadddd1935eebe29f', 'disabled_by': 'user', 'entity_id': 'sensor.0x00158d00031ec3c7_linkquality', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'a8a9619c0b374b8b97a03968864d40ab', 'disabled_by': None, 'entity_id': 'sensor.0x00158d0003614c58_click', 'name': 'Touch button', 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'a8a9619c0b374b8b97a03968864d40ab', 'disabled_by': 'user', 'entity_id': 'sensor.0x00158d0003614c58_battery', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'a8a9619c0b374b8b97a03968864d40ab', 'disabled_by': 'user', 'entity_id': 'sensor.0x00158d0003614c58_linkquality', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'd45e4b305f4e44408e4aee99d3ed6a2f', 'disabled_by': None, 'entity_id': 'sensor.0x00158d000322d1cf_click', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'd45e4b305f4e44408e4aee99d3ed6a2f', 'disabled_by': None, 'entity_id': 'sensor.0x00158d000322d1cf_battery', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'd45e4b305f4e44408e4aee99d3ed6a2f', 'disabled_by': None, 'entity_id': 'sensor.0x00158d000322d1cf_action', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'd45e4b305f4e44408e4aee99d3ed6a2f', 'disabled_by': None, 'entity_id': 'sensor.0x00158d000322d1cf_linkquality', 'name': None, 'platform': 'mqtt'}]}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_click, old_state=None, new_state=<state sensor.0x00158d000322d1cf_click=unknown; friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:32:42.737429+00:00>>
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_battery, old_state=None, new_state=<state sensor.0x00158d000322d1cf_battery=unknown; unit_of_measurement=%, friendly_name=0x00158d000322d1cf_battery, device_class=battery @ 2020-01-04T17:32:42.738134+00:00>>
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_action, old_state=None, new_state=<state sensor.0x00158d000322d1cf_action=unknown; friendly_name=0x00158d000322d1cf_action, icon=mdi:gesture-double-tap @ 2020-01-04T17:32:42.738720+00:00>>
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_linkquality, old_state=None, new_state=<state sensor.0x00158d000322d1cf_linkquality=unknown; unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:32:42.739209+00:00>>
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d000322d1cf
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_click, old_state=None, new_state=<state sensor.0x00158d000322d1cf_click=unknown; friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:32:42.737429+00:00>>}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_battery, old_state=None, new_state=<state sensor.0x00158d000322d1cf_battery=unknown; unit_of_measurement=%, friendly_name=0x00158d000322d1cf_battery, device_class=battery @ 2020-01-04T17:32:42.738134+00:00>>}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_action, old_state=None, new_state=<state sensor.0x00158d000322d1cf_action=unknown; friendly_name=0x00158d000322d1cf_action, icon=mdi:gesture-double-tap @ 2020-01-04T17:32:42.738720+00:00>>}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_linkquality, old_state=None, new_state=<state sensor.0x00158d000322d1cf_linkquality=unknown; unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:32:42.739209+00:00>>}
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d000322d1cf
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d000322d1cf
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d000322d1cf
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d000322d1cf
+    >   2020-01-04 17:32:42 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00158d000322d1cf
+    >   2020-01-04 17:32:53 DEBUG (SyncWorker_4) [homeassistant.helpers.storage] Writing data for core.device_registry
+    >   2020-01-04 17:32:53 DEBUG (SyncWorker_10) [homeassistant.helpers.storage] Writing data for core.entity_registry
+    >   2020-01-04 17:32:54 DEBUG (MainThread) [homeassistant.components.ssdp] Scanning
+
+    #
+    # Switch works.
+    #
+
+    >   zigbee2mqtt:info  2020-01-04 17:36:30: MQTT publish: topic 'zigbee2mqtt/0x00158d000322d1cf', payload '{"battery":100,"voltage":3055,"linkquality":94,"click":""}'
+    >   zigbee2mqtt:info  2020-01-04 17:36:32: MQTT publish: topic 'zigbee2mqtt/0x00158d000322d1cf', payload '{"battery":100,"voltage":3055,"linkquality":94,"click":"single"}'
+    >   zigbee2mqtt:info  2020-01-04 17:36:32: MQTT publish: topic 'zigbee2mqtt/0x00158d000322d1cf', payload '{"battery":100,"voltage":3055,"linkquality":94,"click":""}'
+    >   zigbee2mqtt:info  2020-01-04 17:36:34: MQTT publish: topic 'zigbee2mqtt/0x00158d000322d1cf', payload '{"battery":100,"voltage":3055,"linkquality":94,"click":"single"}'
+    >   zigbee2mqtt:info  2020-01-04 17:36:34: MQTT publish: topic 'zigbee2mqtt/0x00158d000322d1cf', payload '{"battery":100,"voltage":3055,"linkquality":94,"click":""}'
+
+
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/0x00158d000322d1cf: b'{"battery":100,"voltage":3055,"linkquality":92,"click":"single"}'
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_click, old_state=<state sensor.0x00158d000322d1cf_click=; battery=100, voltage=3055, linkquality=94, click=, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:36:34.115638+00:00>, new_state=<state sensor.0x00158d000322d1cf_click=; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:36:34.115638+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_battery, old_state=<state sensor.0x00158d000322d1cf_battery=100; battery=100, voltage=3055, linkquality=94, click=, unit_of_measurement=%, friendly_name=0x00158d000322d1cf_battery, device_class=battery @ 2020-01-04T17:34:27.039393+00:00>, new_state=<state sensor.0x00158d000322d1cf_battery=100; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=%, friendly_name=0x00158d000322d1cf_battery, device_class=battery @ 2020-01-04T17:34:27.039393+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_action, old_state=<state sensor.0x00158d000322d1cf_action=; battery=100, voltage=3055, linkquality=94, click=, friendly_name=0x00158d000322d1cf_action, icon=mdi:gesture-double-tap @ 2020-01-04T17:36:16.855127+00:00>, new_state=<state sensor.0x00158d000322d1cf_action=; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_action, icon=mdi:gesture-double-tap @ 2020-01-04T17:36:16.855127+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_linkquality, old_state=<state sensor.0x00158d000322d1cf_linkquality=94; battery=100, voltage=3055, linkquality=94, click=, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:36:27.604963+00:00>, new_state=<state sensor.0x00158d000322d1cf_linkquality=94; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:36:27.604963+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_click, old_state=<state sensor.0x00158d000322d1cf_click=; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:36:34.115638+00:00>, new_state=<state sensor.0x00158d000322d1cf_click=single; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:38:30.323103+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_linkquality, old_state=<state sensor.0x00158d000322d1cf_linkquality=94; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:36:27.604963+00:00>, new_state=<state sensor.0x00158d000322d1cf_linkquality=92; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:38:30.324126+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/0x00158d000322d1cf: b'{"battery":100,"voltage":3055,"linkquality":92,"click":""}'
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_click, old_state=<state sensor.0x00158d000322d1cf_click=single; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:38:30.323103+00:00>, new_state=<state sensor.0x00158d000322d1cf_click=single; battery=100, voltage=3055, linkquality=92, click=, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:38:30.323103+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_battery, old_state=<state sensor.0x00158d000322d1cf_battery=100; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=%, friendly_name=0x00158d000322d1cf_battery, device_class=battery @ 2020-01-04T17:34:27.039393+00:00>, new_state=<state sensor.0x00158d000322d1cf_battery=100; battery=100, voltage=3055, linkquality=92, click=, unit_of_measurement=%, friendly_name=0x00158d000322d1cf_battery, device_class=battery @ 2020-01-04T17:34:27.039393+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_action, old_state=<state sensor.0x00158d000322d1cf_action=; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_action, icon=mdi:gesture-double-tap @ 2020-01-04T17:36:16.855127+00:00>, new_state=<state sensor.0x00158d000322d1cf_action=; battery=100, voltage=3055, linkquality=92, click=, friendly_name=0x00158d000322d1cf_action, icon=mdi:gesture-double-tap @ 2020-01-04T17:36:16.855127+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_linkquality, old_state=<state sensor.0x00158d000322d1cf_linkquality=92; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:38:30.324126+00:00>, new_state=<state sensor.0x00158d000322d1cf_linkquality=92; battery=100, voltage=3055, linkquality=92, click=, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:38:30.324126+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_click, old_state=<state sensor.0x00158d000322d1cf_click=single; battery=100, voltage=3055, linkquality=92, click=, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:38:30.323103+00:00>, new_state=<state sensor.0x00158d000322d1cf_click=; battery=100, voltage=3055, linkquality=92, click=, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:38:30.328201+00:00>>
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_click, old_state=<state sensor.0x00158d000322d1cf_click=; battery=100, voltage=3055, linkquality=94, click=, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:36:34.115638+00:00>, new_state=<state sensor.0x00158d000322d1cf_click=; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:36:34.115638+00:00>>}
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_battery, old_state=<state sensor.0x00158d000322d1cf_battery=100; battery=100, voltage=3055, linkquality=94, click=, unit_of_measurement=%, friendly_name=0x00158d000322d1cf_battery, device_class=battery @ 2020-01-04T17:34:27.039393+00:00>, new_state=<state sensor.0x00158d000322d1cf_battery=100; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=%, friendly_name=0x00158d000322d1cf_battery, device_class=battery @ 2020-01-04T17:34:27.039393+00:00>>}
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_action, old_state=<state sensor.0x00158d000322d1cf_action=; battery=100, voltage=3055, linkquality=94, click=, friendly_name=0x00158d000322d1cf_action, icon=mdi:gesture-double-tap @ 2020-01-04T17:36:16.855127+00:00>, new_state=<state sensor.0x00158d000322d1cf_action=; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_action, icon=mdi:gesture-double-tap @ 2020-01-04T17:36:16.855127+00:00>>}
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_linkquality, old_state=<state sensor.0x00158d000322d1cf_linkquality=94; battery=100, voltage=3055, linkquality=94, click=, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:36:27.604963+00:00>, new_state=<state sensor.0x00158d000322d1cf_linkquality=94; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:36:27.604963+00:00>>}
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_click, old_state=<state sensor.0x00158d000322d1cf_click=; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:36:34.115638+00:00>, new_state=<state sensor.0x00158d000322d1cf_click=single; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:38:30.323103+00:00>>}
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_linkquality, old_state=<state sensor.0x00158d000322d1cf_linkquality=94; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:36:27.604963+00:00>, new_state=<state sensor.0x00158d000322d1cf_linkquality=92; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:38:30.324126+00:00>>}
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_click, old_state=<state sensor.0x00158d000322d1cf_click=single; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:38:30.323103+00:00>, new_state=<state sensor.0x00158d000322d1cf_click=single; battery=100, voltage=3055, linkquality=92, click=, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:38:30.323103+00:00>>}
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_battery, old_state=<state sensor.0x00158d000322d1cf_battery=100; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=%, friendly_name=0x00158d000322d1cf_battery, device_class=battery @ 2020-01-04T17:34:27.039393+00:00>, new_state=<state sensor.0x00158d000322d1cf_battery=100; battery=100, voltage=3055, linkquality=92, click=, unit_of_measurement=%, friendly_name=0x00158d000322d1cf_battery, device_class=battery @ 2020-01-04T17:34:27.039393+00:00>>}
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_action, old_state=<state sensor.0x00158d000322d1cf_action=; battery=100, voltage=3055, linkquality=92, click=single, friendly_name=0x00158d000322d1cf_action, icon=mdi:gesture-double-tap @ 2020-01-04T17:36:16.855127+00:00>, new_state=<state sensor.0x00158d000322d1cf_action=; battery=100, voltage=3055, linkquality=92, click=, friendly_name=0x00158d000322d1cf_action, icon=mdi:gesture-double-tap @ 2020-01-04T17:36:16.855127+00:00>>}
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_linkquality, old_state=<state sensor.0x00158d000322d1cf_linkquality=92; battery=100, voltage=3055, linkquality=92, click=single, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:38:30.324126+00:00>, new_state=<state sensor.0x00158d000322d1cf_linkquality=92; battery=100, voltage=3055, linkquality=92, click=, unit_of_measurement=-, friendly_name=0x00158d000322d1cf_linkquality @ 2020-01-04T17:38:30.324126+00:00>>}
+    >   2020-01-04 17:38:30 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140272309226064] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00158d000322d1cf_click, old_state=<state sensor.0x00158d000322d1cf_click=single; battery=100, voltage=3055, linkquality=92, click=, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:38:30.323103+00:00>, new_state=<state sensor.0x00158d000322d1cf_click=; battery=100, voltage=3055, linkquality=92, click=, friendly_name=0x00158d000322d1cf_click, icon=mdi:toggle-switch @ 2020-01-04T17:38:30.328201+00:00>>}
+
+
+
+# -----------------------------------------------------
+# Stop the HomeAssistant container.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    docker container stop "${hasstname:?}"
+
+    >   yboakith
+
+
+# -----------------------------------------------------
+# Edit the config to add an automation.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    vi "${hasstdata}/configuration.yaml"
+
+        automation:
+          - alias: 'Xiaomi Switch'
+            hide_entity: false
+            initial_state: false
+            trigger:
+              platform: event
+              event_type: state_changed
+              event_data:
+                entity_id: sensor.0x00158d000322d1cf_click
+            action:
+              service: light.turn_off
+              entity_id: light.0x00158d00031ec3c7_light
+
+
+# -----------------------------------------------------
+# Run the HomeAssistant container.
+#[user@desktop]
+
+    docker container run \
+        --rm \
+        --tty \
+        --init \
+        --interactive \
+        --name "${hasstname:?}" \
+        --link "${mosquname:?}" \
+        --publish 8123:8123 \
+        --env 'TZ=Europe/London' \
+        --volume "${hasstdata:?}:/config" \
+        homeassistant/home-assistant:stable
+
+    >   starting version 3.2.8
+    >   Config directory: /config
+    >   2020-01-04 17:52:31 INFO (SyncWorker_3) [homeassistant.loader] Loaded automation from homeassistant.components.automation
+    >   2020-01-04 17:52:31 INFO (SyncWorker_1) [homeassistant.loader] Loaded logger from homeassistant.components.logger
+    >   2020-01-04 17:52:31 INFO (SyncWorker_2) [homeassistant.loader] Loaded default_config from homeassistant.components.default_config
+    >   2020-01-04 17:52:31 INFO (SyncWorker_3) [homeassistant.loader] Loaded met from homeassistant.components.met
+    >   2020-01-04 17:52:31 INFO (SyncWorker_4) [homeassistant.loader] Loaded mqtt from homeassistant.components.mqtt
+    >   2020-01-04 17:52:31 INFO (SyncWorker_6) [homeassistant.loader] Loaded homeassistant from homeassistant.components.homeassistant
+    >   2020-01-04 17:52:31 INFO (SyncWorker_11) [homeassistant.loader] Loaded persistent_notification from homeassistant.components.persistent_notification
+    >   2020-01-04 17:52:31 INFO (SyncWorker_5) [homeassistant.loader] Loaded device_automation from homeassistant.components.device_automation
+    >   2020-01-04 17:52:31 INFO (SyncWorker_0) [homeassistant.loader] Loaded http from homeassistant.components.http
+    >   2020-01-04 17:52:31 INFO (MainThread) [homeassistant.setup] Setting up homeassistant
+    >   ....
+    >   ....
+
+
+    #
+    # Automation works :-)
+    #
+
+
+# -----------------------------------------------------
+# Stop the HomeAssistant container.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    docker container stop "${hasstname:?}"
+
+    >   yboakith
+
+
+# -----------------------------------------------------
+# Edit the config to add an automation.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    vi "${hasstdata}/configuration.yaml"
+
+        automation:
+          - alias: 'Xiaomi Switch'
+            hide_entity: false
+            initial_state: false
+            trigger:
+              platform: event
+              event_type: state_changed
+              event_data:
+                entity_id: sensor.0x00158d000322d1cf_click
+            action:
+    ~         service: light.toggle
+              entity_id: light.0x00158d00031ec3c7_light
+
+
+# -----------------------------------------------------
+# Run the HomeAssistant container.
+#[user@desktop]
+
+    docker container run \
+        --rm \
+        --tty \
+        --init \
+        --interactive \
+        --name "${hasstname:?}" \
+        --link "${mosquname:?}" \
+        --publish 8123:8123 \
+        --env 'TZ=Europe/London' \
+        --volume "${hasstdata:?}:/config" \
+        homeassistant/home-assistant:stable
+
+
+
+# -----------------------------------------------------
+# Reset the Colour spot, and it should auto connect to the Zigbee network.
+#[user@desktop]
+
+
+    >   zigbee2mqtt:info  2020-01-04 18:03:03: Device '0x00124b001efef505' joined
+    >   zigbee2mqtt:info  2020-01-04 18:03:03: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"device_connected","message":{"friendly_name":"0x00124b001efef505"}}'
+    >   zigbee2mqtt:info  2020-01-04 18:03:03: Starting interview of '0x00124b001efef505'
+    >   zigbee2mqtt:info  2020-01-04 18:03:03: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_started","meta":{"friendly_name":"0x00124b001efef505"}}'
+    >   zigbee2mqtt:info  2020-01-04 18:03:13: MQTT publish: topic 'homeassistant/light/0x00124b001efef505/light/config', payload '{"brightness":true,"xy":true,"white_value":true,"schema":"json","command_topic":"zigbee2mqtt/0x00124b001efef505/set","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_light","unique_id":"0x00124b001efef505_light_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-04 18:03:13: MQTT publish: topic 'homeassistant/sensor/0x00124b001efef505/linkquality/config', payload '{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_linkquality","unique_id":"0x00124b001efef505_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   zigbee2mqtt:info  2020-01-04 18:03:13: Successfully interviewed '0x00124b001efef505', device has successfully been paired
+    >   zigbee2mqtt:info  2020-01-04 18:03:13: Device '0x00124b001efef505' is supported, identified as: Gledopto Smart RGBW GU10 (GL-S-007Z)
+    >   zigbee2mqtt:info  2020-01-04 18:03:13: MQTT publish: topic 'zigbee2mqtt/bridge/log', payload '{"type":"pairing","message":"interview_successful","meta":{"friendly_name":"0x00124b001efef505","model":"GL-S-007Z","vendor":"Gledopto","description":"Smart RGBW GU10","supported":true}}'
+
+
+    >   2020-01-04 18:03:01 DEBUG (MainThread) [homeassistant.components.ssdp] Scanning
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/light/0x00124b001efef505/light/config: b'{"brightness":true,"xy":true,"white_value":true,"schema":"json","command_topic":"zigbee2mqtt/0x00124b001efef505/set","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_light","unique_id":"0x00124b001efef505_light_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 18:03:13 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: light 0x00124b001efef505 light
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on homeassistant/sensor/0x00124b001efef505/linkquality/config: b'{"unit_of_measurement":"-","value_template":"{{ value_json.linkquality }}","state_topic":"zigbee2mqtt/0x00124b001efef505","json_attributes_topic":"zigbee2mqtt/0x00124b001efef505","name":"0x00124b001efef505_linkquality","unique_id":"0x00124b001efef505_linkquality_zigbee2mqtt","device":{"identifiers":["zigbee2mqtt_0x00124b001efef505"],"name":"0x00124b001efef505","sw_version":"Zigbee2mqtt 1.8.0","model":"Smart RGBW GU10 (GL-S-007Z)","manufacturer":"Gledopto"},"availability_topic":"zigbee2mqtt/bridge/state"}'
+    >   2020-01-04 18:03:13 INFO (MainThread) [homeassistant.components.mqtt.discovery] Found new component: sensor 0x00124b001efef505 linkquality
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event device_registry_updated[L]: action=create, device_id=d670ff82e013424bbeca219bd5f78168>
+    >   2020-01-04 18:03:13 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new light.mqtt entity: light.0x00124b001efef505_light
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=light.0x00124b001efef505_light>
+    >   2020-01-04 18:03:13 INFO (MainThread) [homeassistant.helpers.entity_registry] Registered new sensor.mqtt entity: sensor.0x00124b001efef505_linkquality
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event entity_registry_updated[L]: action=create, entity_id=sensor.0x00124b001efef505_linkquality>
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140617892584528] Sending {'id': 12, 'type': 'event', 'event': {'event_type': 'device_registry_updated', 'data': {'action': 'create', 'device_id': 'd670ff82e013424bbeca219bd5f78168'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 18, 3, 13, 351353, tzinfo=<UTC>), 'context': {'id': 'b2edfe3716a3442681d1de8e737d14a5', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140617892584528] Sending {'id': 13, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'light.0x00124b001efef505_light'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 18, 3, 13, 351959, tzinfo=<UTC>), 'context': {'id': '9a3ea72cf2de4e3fac63faef3542e16c', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/bridge/state
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140617892584528] Sending {'id': 13, 'type': 'event', 'event': {'event_type': 'entity_registry_updated', 'data': {'action': 'create', 'entity_id': 'sensor.0x00124b001efef505_linkquality'}, 'origin': 'LOCAL', 'time_fired': datetime.datetime(2020, 1, 4, 18, 3, 13, 353996, tzinfo=<UTC>), 'context': {'id': '3a44bbfd4ea14af38291f5571c309fd8', 'parent_id': None, 'user_id': None}}}
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00124b001efef505
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140617892584528] Received {'type': 'config/device_registry/list', 'id': 38}
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=sensor.0x00124b001efef505_linkquality, old_state=None, new_state=<state sensor.0x00124b001efef505_linkquality=unknown; unit_of_measurement=-, friendly_name=0x00124b001efef505_linkquality @ 2020-01-04T18:03:13.362596+00:00>>
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=light.0x00124b001efef505_light, old_state=None, new_state=<state light.0x00124b001efef505_light=off; friendly_name=0x00124b001efef505_light, supported_features=185 @ 2020-01-04T18:03:13.363352+00:00>>
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140617892584528] Received {'type': 'config/entity_registry/list', 'id': 39}
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140617892584528] Sending {'id': 38, 'type': 'result', 'success': True, 'result': [{'config_entries': ['72eb85321cab489bbdcbde18f4838c8d'], 'connections': [], 'manufacturer': 'Innr', 'model': 'GU10 Spot (RS 225)', 'name': '0x00158d00031ec3c7', 'sw_version': 'Zigbee2mqtt 1.8.0', 'id': '1c180636db5246abadddd1935eebe29f', 'via_device_id': None, 'area_id': None, 'name_by_user': None}, {'config_entries': ['72eb85321cab489bbdcbde18f4838c8d'], 'connections': [], 'manufacturer': 'Xiaomi', 'model': 'MiJia wireless switch (WXKG01LM)', 'name': '0x00158d0003614c58', 'sw_version': 'Zigbee2mqtt 1.8.0', 'id': 'a8a9619c0b374b8b97a03968864d40ab', 'via_device_id': None, 'area_id': None, 'name_by_user': None}, {'config_entries': ['72eb85321cab489bbdcbde18f4838c8d'], 'connections': [], 'manufacturer': 'Xiaomi', 'model': 'Aqara single key wireless wall switch (WXKG03LM)', 'name': '0x00158d000322d1cf', 'sw_version': 'Zigbee2mqtt 1.8.0', 'id': 'd45e4b305f4e44408e4aee99d3ed6a2f', 'via_device_id': None, 'area_id': None, 'name_by_user': None}, {'config_entries': ['72eb85321cab489bbdcbde18f4838c8d'], 'connections': [], 'manufacturer': 'Gledopto', 'model': 'Smart RGBW GU10 (GL-S-007Z)', 'name': '0x00124b001efef505', 'sw_version': 'Zigbee2mqtt 1.8.0', 'id': 'd670ff82e013424bbeca219bd5f78168', 'via_device_id': None, 'area_id': None, 'name_by_user': None}]}
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140617892584528] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=sensor.0x00124b001efef505_linkquality, old_state=None, new_state=<state sensor.0x00124b001efef505_linkquality=unknown; unit_of_measurement=-, friendly_name=0x00124b001efef505_linkquality @ 2020-01-04T18:03:13.362596+00:00>>}
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140617892584528] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=light.0x00124b001efef505_light, old_state=None, new_state=<state light.0x00124b001efef505_light=off; friendly_name=0x00124b001efef505_light, supported_features=185 @ 2020-01-04T18:03:13.363352+00:00>>}
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00124b001efef505
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140617892584528] Sending {'id': 39, 'type': 'result', 'success': True, 'result': [{'config_entry_id': None, 'device_id': None, 'disabled_by': None, 'entity_id': 'binary_sensor.updater', 'name': None, 'platform': 'updater'}, {'config_entry_id': None, 'device_id': None, 'disabled_by': None, 'entity_id': 'person.zarquan', 'name': None, 'platform': 'person'}, {'config_entry_id': '7be34e2b833e4a0b84e45a077db2e0eb', 'device_id': None, 'disabled_by': None, 'entity_id': 'weather.home', 'name': 'Weather', 'platform': 'met'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': '1c180636db5246abadddd1935eebe29f', 'disabled_by': None, 'entity_id': 'light.0x00158d00031ec3c7_light', 'name': 'GU10 Spot (white)', 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': '1c180636db5246abadddd1935eebe29f', 'disabled_by': 'user', 'entity_id': 'sensor.0x00158d00031ec3c7_linkquality', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'a8a9619c0b374b8b97a03968864d40ab', 'disabled_by': None, 'entity_id': 'sensor.0x00158d0003614c58_click', 'name': 'Touch button', 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'a8a9619c0b374b8b97a03968864d40ab', 'disabled_by': 'user', 'entity_id': 'sensor.0x00158d0003614c58_battery', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'a8a9619c0b374b8b97a03968864d40ab', 'disabled_by': 'user', 'entity_id': 'sensor.0x00158d0003614c58_linkquality', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'd45e4b305f4e44408e4aee99d3ed6a2f', 'disabled_by': None, 'entity_id': 'sensor.0x00158d000322d1cf_click', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'd45e4b305f4e44408e4aee99d3ed6a2f', 'disabled_by': 'user', 'entity_id': 'sensor.0x00158d000322d1cf_battery', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'd45e4b305f4e44408e4aee99d3ed6a2f', 'disabled_by': None, 'entity_id': 'sensor.0x00158d000322d1cf_action', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'd45e4b305f4e44408e4aee99d3ed6a2f', 'disabled_by': 'user', 'entity_id': 'sensor.0x00158d000322d1cf_linkquality', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'd670ff82e013424bbeca219bd5f78168', 'disabled_by': None, 'entity_id': 'light.0x00124b001efef505_light', 'name': None, 'platform': 'mqtt'}, {'config_entry_id': '72eb85321cab489bbdcbde18f4838c8d', 'device_id': 'd670ff82e013424bbeca219bd5f78168', 'disabled_by': None, 'entity_id': 'sensor.0x00124b001efef505_linkquality', 'name': None, 'platform': 'mqtt'}]}
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.mqtt] Received message on zigbee2mqtt/bridge/state (retained): b'online'
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00124b001efef505
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.mqtt] Subscribing to zigbee2mqtt/0x00124b001efef505
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event call_service[L]: domain=group, service=set, service_data=object_id=all_lights, name=all lights, visible=False, entities=['light.0x00124b001efef505_light', 'light.0x00158d00031ec3c7_light']>
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.core] Bus:Handling <Event state_changed[L]: entity_id=group.all_lights, old_state=<state group.all_lights=off; entity_id=('light.0x00158d00031ec3c7_light',), order=1, auto=True, friendly_name=all lights, hidden=True @ 2020-01-04T18:00:48.914035+00:00>, new_state=<state group.all_lights=off; entity_id=('light.0x00124b001efef505_light', 'light.0x00158d00031ec3c7_light'), order=1, auto=True, friendly_name=all lights, hidden=True @ 2020-01-04T18:00:48.914035+00:00>>
+    >   2020-01-04 18:03:13 DEBUG (MainThread) [homeassistant.components.websocket_api.http.connection.140617892584528] Sending {'id': 2, 'type': 'event', 'event': <Event state_changed[L]: entity_id=group.all_lights, old_state=<state group.all_lights=off; entity_id=('light.0x00158d00031ec3c7_light',), order=1, auto=True, friendly_name=all lights, hidden=True @ 2020-01-04T18:00:48.914035+00:00>, new_state=<state group.all_lights=off; entity_id=('light.0x00124b001efef505_light', 'light.0x00158d00031ec3c7_light'), order=1, auto=True, friendly_name=all lights, hidden=True @ 2020-01-04T18:00:48.914035+00:00>>}
+    >   2020-01-04 18:03:24 DEBUG (SyncWorker_8) [homeassistant.helpers.storage] Writing data for core.device_registry
+    >   2020-01-04 18:03:24 DEBUG (SyncWorker_19) [homeassistant.helpers.storage] Writing data for core.entity_registry
+
+
+

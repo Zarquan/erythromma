@@ -1,0 +1,78 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2019 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+
+    ESP-WROOM-02
+    Cost £2.21
+    https://www.mouser.co.uk/ProductDetail/Espressif-Systems/ESP-WROOM-02
+    Data sheet
+    https://www.mouser.co.uk/datasheet/2/891/0c-esp-wroom-02_datasheet_en-1223884.pdf
+    MicroPython
+    https://forum.micropython.org/viewtopic.php?t=3417
+
+    x5 = £11.05 + £12.00 postage + £4.61
+       = £27.66
+       = £5.53 each
+
+
+    ESP-WROOM-02U
+    Cost £2.62
+    https://www.mouser.co.uk/ProductDetail/Espressif-Systems/ESP-WROOM-02U
+
+    ESP8266 Quick start guide
+    https://www.espressif.com/sites/default/files/documentation/esp8266_quick_start_guide_en.pdf
+
+    ESP32-DevKitC
+    Cost £8.19
+    https://www.mouser.co.uk/ProductDetail/Espressif-Systems/ESP32-DevKitC
+
+
+
+    Slibrat 5x NodeMcu Lua ESP8266 ESP-12E CH340G WIFI Network Development Board
+    Cost £16.81 for 5 = £3.37 each
+
+    FBlue ESP8266 Serial Port Wifi Module NodeMcu Lua WIFI V3 Internet development board CH-340
+    Cost £3.79
+
+    AZ-Delivery D1 Mini
+    Cost £14.00 for 3 = £4.67
+    Cost  £6.30 for 1
+
+    Crazepony-UK D1 Mini NodeMcu 4M Bytes Lua WIFI Development Board ESP8266 ESP-12F
+    Cost £6.00
+
+
+
+    TeOhk ESP8266 WiFi Relay Module with ESP-01S
+    Cost £7.00
+    https://www.amazon.co.uk/dp/B07SYNZGHM
+
+    Relay board
+    Cost £8.00 for 6 = £1.34 each
+    https://www.amazon.co.uk/ARCELI-Channel-Optocoupler-Support-Trigger/dp/B07RKH9KLM
+
+
+    220V to 5V Mini Power Supply
+    https://www.amazon.co.uk/AZDelivery-Power-Supply-Arduino-Raspberry/dp/B07C53B1GZ/
+
+
+
