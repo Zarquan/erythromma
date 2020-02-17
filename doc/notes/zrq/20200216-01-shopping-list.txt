@@ -1,0 +1,62 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2020 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#zrq-notes-time
+#zrq-notes-indent
+#zrq-notes-crypto
+#zrq-notes-ansible
+#zrq-notes-osformat
+#
+
+
+    https://www.ebay.co.uk/i/174114495442
+    Smart ZigBee PIR Motion Sensor Support Tuya Smart Life APP IFTTT for Amazon N5F5
+    PIR motion sensor £44.99
+    Not clear, is this ZigBee or Tuya/WiFi ?
+
+    https://www.ebay.co.uk/i/254402601904
+    Smart WiFi PIR Motion Sensor Work with Amazon Alexa,Goole Assistant,IFTTT m6
+    PIR motion sensor £14.99
+    I think this is Tuya/WiFi.
+
+    https://resource.boschsecurity.com/documents/RFDL_ZB_Data_sheet_enUS_23977477387.pdf
+    Bosch RADION TriTech ZB Wireless MotionDetector
+    £40
+    
+    -----------------------    
+    
+    CC2530 based multi-purpose ZigBee Relais, Switch, Sensor and Router
+    https://github.com/formtapez/ZigUP/
+
+    E18-MS1-PCB Zigbee IO CC2530 2.4Ghz 2.5mW PCB Antenna IoT uhf Mesh Network Wireless Transceiver Transmitter Receiver Module
+    https://www.aliexpress.com/item/32803052003.html
+    
+    
+    CC2530 Zigbee Module UART Wireless Core Board Development Board CC2530F256 Serial Port Wireless Module 2.4GHz Zigbee
+    https://www.aliexpress.com/item/32767470382.html
+
+    Development kit
+    https://www.aliexpress.com/item/32806496292.html
+
+    Wireless Transceiver Module CC2530/CC2530+CC2591+PA 2.4GHz 2.4G UART Transparent Transmission Module
+    https://www.aliexpress.com/item/33056065491.html?spm=a2g0o.detail.1000023.4.594065b2D8gYVa
+
+    
+

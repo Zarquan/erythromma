@@ -1,0 +1,133 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2018 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#  
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+#---------------------------------------------------------------------
+# Login to the Pi
+#[pi@raspberry] 
+
+    ssh pi@pi-003.raspberry    
+
+#---------------------------------------------------------------------
+# Add our ssh key.
+# TODO Add this to the image ?
+#[pi@raspberry] 
+
+    mkdir ${HOME}/.ssh
+    pushd ${HOME}/.ssh
+
+        wget http://data.metagrid.co.uk/sshkeys/zrq.metagrid.co.uk.rsa.pub
+
+        cat zrq.metagrid.co.uk.rsa.pub >> authorized_keys 
+
+        chown pi:pi authorized_keys
+        chmod u=rw,g=r,o=r authorized_keys
+
+    popd
+
+    chmod u=rwx,g=,o= ${HOME}
+    chmod u=rwx,g=,o= ${HOME}/.ssh
+
+#---------------------------------------------------------------------
+# Enable I2C.
+# https://learn.sparkfun.com/tutorials/raspberry-pi-spi-and-i2c-tutorial
+# https://www.abelectronics.co.uk/kb/article/1/i2c--smbus-and-raspbian-linux
+#[pi@raspberry] 
+
+    sudo raspi-config
+
+#---------------------------------------------------------------------
+# Install the I2C tools
+#[pi@raspberry] 
+
+    sudo apt-get update
+    sudo apt-get install -y \
+        i2c-tools
+
+    sudo apt-get install -y \
+        python-smbus \
+        python3-smbus
+
+        python-dev \
+        python3-dev
+
+#---------------------------------------------------------------------
+# Check the I2C devices
+#[pi@raspberry] 
+
+    ls -al /dev/*i2c*
+
+        /dev/i2c-1
+
+
+    i2cdetect -y 1
+
+             0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+        00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+        10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+        20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+        30: -- -- -- -- -- -- -- -- 38 39 -- -- -- -- -- -- 
+        40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+        50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+        60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+        70: -- -- -- -- -- -- -- --                         
+
+
+    # i2cget
+    # i2cset
+    # i2cdump
+
+#---------------------------------------------------------------------
+# Enable the I2C tools
+#[pi@raspberry] 
+
+    sudo vi /boot/config.txt
+
+        dtparam=i2c_arm=on
+        dtparam=i2c1=on
+
+#---------------------------------------------------------------------
+# Enable access to the I2C tools
+#[pi@raspberry] 
+
+    sudo adduser pi i2c
+
+#---------------------------------------------------------------------
+# I2C relay strobe
+#[pi@raspberry] 
+
+    python
+
+import time
+import smbus
+i2c = smbus.SMBus(1)
+
+i2c.write_byte(0x39, 0xff)
+
+while (True):
+    for value in range(0x00, 0xff):
+        time.sleep(0.5)
+        test = i2c.read_byte(0x39) ^ 0xEF
+        print("[{0:08b}][{1:08b}]".format(value, test))
+        i2c.write_byte(0x38, (test ^ 0xFF))
+
+
+

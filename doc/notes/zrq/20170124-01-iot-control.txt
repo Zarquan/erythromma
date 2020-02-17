@@ -1,0 +1,216 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2017 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#  
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+#---------------------------------------------------------------------
+# Motion sensor
+
+    https://www.mysensors.org/build/motion
+    https://www.itead.cc/pir-motion-sensor-module.html
+    https://www.itead.cc/wiki/PIR_Motion_Sensor_Module
+    
+    Detector
+    http://www.e-ele.net/DataSheet/BISS0001.pdf
+    
+    3.3v reg
+    http://html.alldatasheet.com/html-pdf/64471/HOLTEK/HT7133-1/369/2/HT7133-1.html
+
+#---------------------------------------------------------------------
+# POE
+
+    Arduino compatible with Ethernet and POE
+    http://www.freetronics.com.au/products/etherten
+
+#---------------------------------------------------------------------
+# Ethernet Arduino compatable
+
+    http://www.instructables.com/id/A-credit-card-sized-Ethernet-Arduino-compatable-co/?ALLSTEPS
+
+    Micro - ATMega168 or ATMega328 - DIP £1.67
+    http://www.digikey.co.uk/product-detail/en/microchip-technology/ATMEGA328P-PU/ATMEGA328P-PU-ND/1914589
+    
+    Ethernet - Microchip ENC28J60 - DIP £2.44
+    http://www.digikey.co.uk/product-detail/en/microchip-technology/ENC28J60-I-SP/ENC28J60-I-SP-ND/1680061
+    
+    74HC08 - DIP £0.36
+    http://www.digikey.co.uk/product-detail/en/texas-instruments/SN74HC08N/296-1570-5-ND/277216
+    
+    1N4004 Diode - £0.10
+    http://www.digikey.co.uk/product-detail/en/diodes-incorporated/1N4004-T/1N4004DICT-ND/160593
+    
+    78L05 Regulator - £0.28
+    http://www.digikey.co.uk/product-detail/en/stmicroelectronics/L78L05ACZ-AP/497-16173-1-ND/5764808
+
+    78L33 Regulator - £0.32
+    http://www.digikey.co.uk/product-detail/en/stmicroelectronics/L78L33ABZ-AP/497-7287-1-ND/1884864
+    
+    16 Mhz Crystal - £0.30
+    http://www.digikey.co.uk/product-detail/en/ecs-inc/ECS-160-20-46X/XC1759-ND/2676589
+    
+    25 Mhz Crystal - £0.30
+    http://www.digikey.co.uk/product-detail/en/ecs-inc/ECS-250-20-46X/XC1764-ND/2676594
+
+    WIZnet RB1-125BAG1A RJ45 Magjack Connector £1.99
+    https://www.digikey.co.uk/product-detail/en/wiznet/RB1-125BAG1A/1278-1011-ND/3829637
+
+    18pF x4 - £0.16
+    https://www.digikey.co.uk/product-detail/en/vishay-bc-components/K180J15C0GF5TL2/BC1004CT-ND/286626
+
+    100nF x4 - £0.14
+    http://www.digikey.co.uk/product-detail/en/vishay-bc-components/K104K10X7RF5UH5/BC2665CT-ND/2356879
+
+    10uF x3 - £0.09
+    http://www.digikey.co.uk/products/en?keywords=%20732-8593-1-ND%20
+
+    50R x 4 £0.41
+    http://www.digikey.co.uk/product-detail/en/ohmite/53J50RE/53J50RE-ND/5050024
+    
+    270R x 5 £0.08
+    http://www.digikey.co.uk/product-detail/en/stackpole-electronics-inc/CFM12JT270R/S270HCT-ND/2617583
+    
+    2k7 x 2 £0.022
+    http://www.digikey.co.uk/product-detail/en/stackpole-electronics-inc/CF14JT2K70/CF14JT2K70CT-ND/1830360
+    
+    10K x 3 £0.022
+    http://www.digikey.co.uk/product-detail/en/stackpole-electronics-inc/CF14JT10K0/CF14JT10K0CT-ND/1830374
+
+    Ferrite bead £0.09
+    http://www.digikey.co.uk/scripts/DkSearch/dksus.dll?Detail&itemSeq=217408427&uq=636209791669558284
+
+    Prototype board - £5.25
+
+    3mm LED
+    
+    5mm LED
+
+    £70/4=£17.5
+    +VAT = £20
+
+
+
+
+
+    5V 1W power supply £7.85
+    https://www.digikey.co.uk/product-detail/en/cui-inc/PBK-1-5/102-3101-ND/4332638
+
+    5V 1W power supply £4.36
+    https://www.rapidonline.com/mornsun-ls01-15b05ss-1w-single-output-pcb-mount-sip-ac-module-psu-5v-dc-84-1390
+
+
+
+
+
+    30m 2core red/black - £37.76
+    https://www.digikey.co.uk/product-detail/en/alpha-wire/1172C-SL005/A120-100-ND/204532
+
+
+
+digikey.co.uk@metagrid.co.uk
+k6DIbruPuotXSf
+
+
+
+#---------------------------------------------------------------------
+# Enable I2C.
+# https://learn.sparkfun.com/tutorials/raspberry-pi-spi-and-i2c-tutorial
+#[pi@raspberry] 
+
+    sudo raspi-config
+
+#---------------------------------------------------------------------
+# Check the I2C devices
+#[pi@raspberry] 
+
+    ls /dev/*i2c*
+
+        /dev/i2c-1
+
+#---------------------------------------------------------------------
+# Install the I2C tools
+#[pi@raspberry] 
+
+    sudo apt-get update
+    sudo apt-get install -y i2c-tools
+
+#---------------------------------------------------------------------
+# I2C relay strobe
+#[pi@raspberry] 
+
+    #!/usr/bin/python
+    import time
+    import smbus
+    i2c = smbus.SMBus(1)
+    while (True):
+      for value in range(0x00, 0x100):
+        time.sleep(0.5)
+        print "[", value, "]"
+        i2c.write_byte(0x38, (value ^ 0xff))
+
+
+
+
+
+#---------------------------------------------------------------------
+# GPIO sensor polling
+#[pi@raspberry] 
+
+
+
+
+
+
+
+#---------------------------------------------------------------------
+# Enable SSH
+# https://www.raspberrypi.org/documentation/remote-access/ssh/
+#[pi@raspberry] 
+
+    sudo raspi-config
+
+        Advanced
+            |
+            +-- Enable SSH
+
+
+    # For headless setup, SSH can be enabled by placing a file named 'ssh',
+    # without any extension, onto the boot partition of the SD card.
+
+#---------------------------------------------------------------------
+# Fixing SSH keys
+#[pi@raspberry] 
+
+    sudo rm -v /etc/ssh/ssh_host*
+    sudo dpkg-reconfigure openssh-server
+
+#---------------------------------------------------------------------
+# Supplies
+#
+
+
+
+
+
+    Cat6 UTP Ethernet Cable (£47.43 for 100m)
+    https://uk.rs-online.com/web/p/cat6-cable/8427324/
+    
+
+
+

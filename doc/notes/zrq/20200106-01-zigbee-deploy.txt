@@ -1,0 +1,352 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2020 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#zrq-notes-time
+#zrq-notes-indent
+#zrq-notes-ansible
+#zrq-notes-osformat
+#
+
+    #
+    # Configuration examples.
+    # https://www.home-assistant.io/cookbook/
+
+
+
+# -----------------------------------------------------
+# Create our project config file.
+#[user@desktop]
+
+    cat > "${HOME}/erythromma.settings" << 'EOF'
+
+ERYTHROMMA_HOME=/var/local/projects/erythromma
+ERYTHROMMA_DATA=${ERYTHROMMA_HOME:?}/data
+ERYTHROMMA_REPO=https://github.com/Zarquan/erythromma.git
+ERYTHROMMA_CODE=${ERYTHROMMA_HOME:?}/github
+
+mosquname=cilican
+mosquconf=${ERYTHROMMA_DATA:?}/mosqu/conf
+mosqudata=${ERYTHROMMA_DATA:?}/mosqu/data
+mosqucode=${ERYTHROMMA_DATA:?}/mosqu/code
+mosqulogs=${ERYTHROMMA_DATA:?}/mosqu/logs
+
+zb2mqname=heririd
+zb2mqconf=${ERYTHROMMA_DATA:?}/zb2mq/conf
+zb2mqdata=${ERYTHROMMA_DATA:?}/zb2mq/data
+zb2mqcode=${ERYTHROMMA_DATA:?}/zb2mq/code
+
+hasstname=yboakith
+hasstconf=${ERYTHROMMA_DATA:?}/hasst/conf
+hasstdata=${ERYTHROMMA_DATA:?}/hasst/data
+hasstcode=${ERYTHROMMA_DATA:?}/hasst/code
+
+EOF
+
+# -----------------------------------------------------
+# Create our project directories.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    echo "Checking [${ERYTHROMMA_HOME:?}]"
+    if [ ! -e "${ERYTHROMMA_HOME:?}" ]
+    then
+        echo "Creating [${ERYTHROMMA_HOME:?}]"
+        mkdir "${ERYTHROMMA_HOME:?}"
+    fi
+
+    echo "Checking [${ERYTHROMMA_DATA:?}]"
+    if [ ! -e "${ERYTHROMMA_DATA:?}" ]
+    then
+        echo "Creating [${ERYTHROMMA_DATA:?}]"
+        mkdir "${ERYTHROMMA_DATA:?}"
+    fi
+
+
+# -----------------------------------------------------
+# Checkout opur source code our project directories.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    echo "Checking [${ERYTHROMMA_CODE:?}]"
+    if [ ! -e "${ERYTHROMMA_CODE:?}" ]
+    then
+        clonepath=$(dirname  ${ERYTHROMMA_CODE:?})
+        clonename=$(basename ${ERYTHROMMA_CODE:?})
+
+        echo "Cloning [${ERYTHROMMA_REPO:?}] to [${clonepath:?}] as [${clonename:?}]"
+        pushd "${clonepath:?}"
+            git clone "${ERYTHROMMA_REPO:?}" "${clonename:?}"
+        popd
+    else
+        echo "Updating [${ERYTHROMMA_CODE:?}]"
+        pushd "${ERYTHROMMA_CODE:?}"
+            git pull
+        popd
+    fi
+
+
+# -----------------------------------------------------
+# Create our Mosquitto data directory.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    echo "Checking [${mosqudata:?}]"
+    if [ ! -e "${mosqudata:?}" ]
+    then
+        echo "Creating [${mosqudata:?}]"
+        mkdir "${mosqudata:?}"
+    fi
+
+# -----------------------------------------------------
+# Create our Mosquitto directories.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    echo "Checking [${mosquconf:?}]"
+    if [ ! -e "${mosquconf:?}" ]
+    then
+        echo "Creating [${mosquconf:?}]"
+        mkdir "${mosquconf:?}"
+    fi
+
+    echo "Checking [${mosqudata:?}]"
+    if [ ! -e "${mosqudata:?}" ]
+    then
+        echo "Creating [${mosqudata:?}]"
+        mkdir "${mosqudata:?}"
+    fi
+
+    echo "Checking [${mosqulogs:?}]"
+    if [ ! -e "${mosqulogs:?}" ]
+    then
+        echo "Creating [${mosqulogs:?}]"
+        mkdir "${mosqulogs:?}"
+    fi
+
+
+# -----------------------------------------------------
+# Create our Mosquitto config file.
+# https://mosquitto.org/man/mosquitto-conf-5.html
+#[user@desktop]
+
+TODO move our config files into GitHub
+
+    source "${HOME}/erythromma.settings"
+
+    cat > "${mosquconf:?}/mosquitto.conf" << EOF
+
+EOF
+
+    chmod a+rw "${mosquconf:?}/mosquitto.conf"
+
+
+# -----------------------------------------------------
+# Run Mosquitto in a Docker container.
+# https://hub.docker.com/_/eclipse-mosquitto
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    docker run \
+        --rm \
+        --tty \
+        --interactive \
+        --name "${mosquname:?}" \
+        --publish 1883:1883 \
+        --publish 9001:9001 \
+        --volume "${mosquconf:?}:/mosquitto/config" \
+        --volume "${mosqudata:?}:/mosquitto/data"   \
+        --volume "${mosqulogs:?}:/mosquitto/log"    \
+        eclipse-mosquitto
+
+--START--
+--END--
+
+# -----------------------------------------------------
+# Create our Zigbee2mqtt directories.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    echo "Checking [${zb2mqdata:?}]"
+    if [ ! -e "${zb2mqdata:?}" ]
+    then
+        echo "Creating [${zb2mqdata:?}]"
+        mkdir "${zb2mqdata:?}"
+    fi
+
+
+# -----------------------------------------------------
+# Create our Zigbee2mqtt config file.
+# https://www.zigbee2mqtt.io/getting_started/running_zigbee2mqtt.html#3-configuring
+#[user@desktop]
+
+TODO move our config files into GitHub
+
+    source "${HOME}/erythromma.settings"
+
+    cat > "${zb2mqdata:?}/configuration.yaml" << EOF
+
+# Home Assistant integration (MQTT discovery)
+homeassistant: true
+
+# allow new devices to join
+permit_join: true
+
+# MQTT settings
+mqtt:
+
+  # MQTT base topic for zigbee2mqtt MQTT messages
+  base_topic: zigbee2mqtt
+
+  # MQTT server URL
+  server: 'mqtt://${mosquname:?}'
+
+  # MQTT server authentication, uncomment if required:
+  # user: my_user
+  # password: my_password
+
+# Serial settings
+serial:
+
+  # Location of CC2531 USB sniffer
+  port: /dev/ttyACM0
+
+EOF
+
+    chmod a+rw "${zb2mqdata:?}/configuration.yaml"
+
+
+# -----------------------------------------------------
+# Run Zigbee2mqtt in a Docker container.
+# https://www.zigbee2mqtt.io/information/docker.html
+#[user@desktop]
+
+TODO mount the Zigbee2mqtt code from GitHub
+
+    docker run \
+        --rm \
+        --tty \
+        --interactive \
+        --name "${zb2mqname:?}" \
+        --link "${mosquname:?}" \
+       --env 'TZ=Europe/London' \
+       --device /dev/ttyACM0 \
+       --volume "${zb2mqdata:?}:/app/data" \
+       --volume /run/udev:/run/udev:ro \
+       --privileged=true \
+       koenkk/zigbee2mqtt
+
+--START--
+--END--
+
+
+# -----------------------------------------------------
+# Create our HomeAssistant directories.
+#[user@desktop]
+
+    source "${HOME}/erythromma.settings"
+
+    echo "Checking [${hasstconf:?}]"
+    if [ ! -e "${hasstconf:?}" ]
+    then
+        echo "Creating [${hasstconf:?}]"
+        mkdir "${hasstconf:?}"
+    fi
+
+    echo "Checking [${hasstdata:?}]"
+    if [ ! -e "${hasstdata:?}" ]
+    then
+        echo "Creating [${hasstdata:?}]"
+        mkdir "${hasstdata:?}"
+    fi
+
+
+# -----------------------------------------------------
+# Create our HomeAssistant config file.
+# https://www.home-assistant.io/docs/configuration/basic/
+# https://www.zigbee2mqtt.io/integration/home_assistant
+#[user@desktop]
+
+TODO move our config files into GitHub
+
+    source "${HOME}/erythromma.settings"
+
+    cat > "${hasstconf:?}/configuration.yaml" << EOF
+
+default_config:
+
+homeassistant:
+    latitude:  50.6331828
+    longitude: -3.3327239
+    elevation: 10
+    unit_system: metric
+    time_zone: Europe/London
+    name: EX96PU
+
+mqtt:
+  broker: ${mosquname}
+  discovery: true
+  birth_message:
+    topic:   'hass/status'
+    payload: 'online'
+  will_message:
+    topic:   'hass/status'
+    payload: 'offline'
+
+
+logger:
+  default: debug
+  logs:
+    homeassistant.components.yamaha: debug
+
+EOF
+
+    chmod a+rw "${hasstdata:?}/configuration.yaml"
+
+
+# -----------------------------------------------------
+# Run HomeAssistant in a Docker container.
+# https://www.home-assistant.io/docs/installation/docker/
+#[user@desktop]
+
+TODO mount the HAsst code from GitHub
+
+    docker run \
+        --rm \
+        --tty \
+        --init \
+        --interactive \
+        --name "${hasstname:?}" \
+        --link "${mosquname:?}" \
+        --publish 8123:8123 \
+        --env 'TZ=Europe/London' \
+        --volume "${hasstconf:?}:/config" \
+        homeassistant/home-assistant:stable
+
+
+
+--START--
+--END--
+

@@ -1,0 +1,246 @@
+#
+# <meta:header>
+#   <meta:licence>
+#     Copyright (C) 2018 by Wizzard Solutions Ltd, ischnura@metagrid.co.uk
+#
+#     This information is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This information is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#  
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   </meta:licence>
+# </meta:header>
+#
+#
+
+    #
+    # https://www.piborg.org/blog/pi-zero-wifi-bluetooth
+    # 
+
+#-----------------------------------------------------------
+# Check which device to use
+#[user@desktop]
+
+    lsblk
+
+        NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+        sdb      8:16   1  28.8G  0 disk              <--- This is the SD card
+        ├─sdb2   8:18   1  28.8G  0 part /run/media/Zarquan/rootfs1
+        └─sdb1   8:17   1  41.8M  0 part /run/media/Zarquan/boot
+        sda      8:0    0 232.9G  0 disk               <--- This is our SSD drive
+        ├─sda4   8:4    0 224.2G  0 part /
+        ├─sda2   8:2    0   500M  0 part /boot
+        ├─sda3   8:3    0     8G  0 part [SWAP]
+        └─sda1   8:1    0     2M  0 part 
+
+
+#-----------------------------------------------------------
+# Transfer the image.
+#[user@desktop]
+
+    sudo dd bs=4M if=2018-03-13-raspbian-stretch-lite.img of=/dev/sdb conv=fsync status=progress
+
+#-----------------------------------------------------------
+# Configure the image.
+# https://www.piborg.org/blog/pi-zero-wifi-bluetooth
+# https://www.teachmemicro.com/raspberry-pi-zero-web-server
+# https://linux.die.net/man/5/wpa_supplicant.conf
+#[user@desktop]
+
+    bootfs=/run/media/Zarquan/boot
+
+    sudo touch "${bootfs:?}/ssh"
+
+    sudo cat > "${bootfs:?}/wpa_supplicant.conf" << EOF
+    ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+    update_config=1
+    country=GB
+
+    network={
+        ssid="metagrid.co.uk"
+        key_mgmt=WPA-PSK
+        psk=e9cd87b776cdd170247267e607f6fa18608300576a515ce58c6b6a26a76b2cc6
+        }
+    EOF
+
+#-----------------------------------------------------------
+# Unmount the SD card.
+#[user@desktop]
+
+    udisksctl unmount   -b /dev/sdb1
+    udisksctl unmount   -b /dev/sdb2
+    udisksctl power-off -b /dev/sdb
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------------------------------
+# Fix IPv6 routing on wifi.
+#[root@wifi-one]
+
+    NetworkConfiguration
+    https://wiki.debian.org/NetworkConfiguration#Configuring_the_interface_manually
+
+    The File “etc/network/interfaces” is basically empty
+    https://raspberrypi.stackexchange.com/questions/72923/the-file-etc-network-interfaces-is-basically-empty
+
+    IPv6
+    https://wiki.archlinux.org/index.php/IPv6
+
+    Turn any computer into a wireless access point with Hostapd
+    https://seravo.fi/2014/create-wireless-access-point-hostapd
+
+
+    Software access point
+    https://wiki.archlinux.org/index.php/software_access_point
+
+    Create wifi access point with IPV6 using hostapd
+    https://bbs.archlinux.org/viewtopic.php?id=179663
+
+    [script] create_ap: Create a NATed or Bridged WiFi Access Point
+    https://github.com/oblique/create_ap
+
+
+    radvd
+    Pv6 Router Advertisement Daemon
+    https://wiki.archlinux.org/index.php/IPv6#For_gateways
+
+    IPv6 Network (Auto) Configuration
+    https://egustafson.github.io/post/ipv6-dhcpv6/
+
+
+    How to Enable IP Forwarding
+    http://www.ducea.com/2006/08/01/how-to-enable-ip-forwarding-in-linux/
+
+
+    sysctl net.ipv4 | grep forward
+
+        net.ipv4.conf.all.forwarding = 1
+        net.ipv4.conf.all.mc_forwarding = 0
+        net.ipv4.conf.default.forwarding = 1
+        net.ipv4.conf.default.mc_forwarding = 0
+        net.ipv4.conf.eth0.forwarding = 1
+        net.ipv4.conf.eth0.mc_forwarding = 0
+        net.ipv4.conf.lo.forwarding = 1
+        net.ipv4.conf.lo.mc_forwarding = 0
+        net.ipv4.conf.wlan0.forwarding = 1
+        net.ipv4.conf.wlan0.mc_forwarding = 0
+        net.ipv4.ip_forward = 1
+        net.ipv4.ip_forward_use_pmtu = 0
+
+    sysctl net.ipv6 | grep forward
+
+        net.ipv6.conf.all.forwarding = 1
+        net.ipv6.conf.all.mc_forwarding = 0
+        net.ipv6.conf.default.forwarding = 1
+        net.ipv6.conf.default.mc_forwarding = 0
+        net.ipv6.conf.eth0.forwarding = 1
+        net.ipv6.conf.eth0.mc_forwarding = 0
+        net.ipv6.conf.lo.forwarding = 1
+        net.ipv6.conf.lo.mc_forwarding = 0
+        net.ipv6.conf.wlan0.forwarding = 1
+        net.ipv6.conf.wlan0.mc_forwarding = 0
+
+
+
+
+
+
+TODO
+Enabling IPv6 on the wifi interface
+Enabling IPv6 on the wifi clients
+
+
+# -----------------------------------------------------------------------------------
+# Add wireless tools.
+#[root@pi]
+
+    dnf install wireless-tools
+
+    iwconfig 
+
+        eth0      no wireless extensions.
+
+        wlan0     IEEE 802.11  Mode:Master  Tx-Power=31 dBm   
+                  Retry short limit:7   RTS thr:off   Fragment thr:off
+                  Power Management:on
+                  
+        lo        no wireless extensions.
+
+# -----------------------------------------------------------------------------------
+# Explore the IPv6 settings.
+#[root@pi]
+
+    https://wiki.archlinux.org/index.php/IPv6
+
+    #
+    # Lots of neighbors
+    ping ff02::1%eth0
+
+        PING ff02::1%eth0(ff02::1%eth0) 56 data bytes
+        64 bytes from fe80::8f:8ff:fe42:69ee%eth0: icmp_seq=1 ttl=64 time=0.565 ms
+        64 bytes from fe80::a60:6eff:fe71:3c7c%eth0: icmp_seq=1 ttl=64 time=1.18 ms (DUP!)
+        64 bytes from fe80::204:edff:fe4a:f7dd%eth0: icmp_seq=1 ttl=64 time=1.76 ms (DUP!)
+        64 bytes from fe80::ba27:ebff:fe3b:5d66%eth0: icmp_seq=1 ttl=64 time=2.00 ms (DUP!)
+        64 bytes from fe80::2a92:4aff:fe38:35a4%eth0: icmp_seq=1 ttl=64 time=2.28 ms (DUP!)
+        64 bytes from fe80::a60:6eff:fe71:3a24%eth0: icmp_seq=1 ttl=64 time=2.76 ms (DUP!)
+        64 bytes from fe80::5054:ff:fe00:1b%eth0: icmp_seq=1 ttl=64 time=3.03 ms (DUP!)
+        64 bytes from fe80::16da:e9ff:fe0c:7377%eth0: icmp_seq=1 ttl=64 time=3.25 ms (DUP!)
+        64 bytes from fe80::5054:ff:fe00:702%eth0: icmp_seq=1 ttl=64 time=3.42 ms (DUP!)
+        64 bytes from fe80::8f:8ff:fe42:69ee%eth0: icmp_seq=2 ttl=64 time=1.71 ms
+        64 bytes from fe80::a60:6eff:fe71:3a24%eth0: icmp_seq=2 ttl=64 time=2.51 ms (DUP!)
+        64 bytes from fe80::16da:e9ff:fe0c:7377%eth0: icmp_seq=2 ttl=64 time=2.96 ms (DUP!)
+        64 bytes from fe80::a60:6eff:fe71:3c7c%eth0: icmp_seq=2 ttl=64 time=3.29 ms (DUP!)
+        64 bytes from fe80::2a92:4aff:fe38:35a4%eth0: icmp_seq=2 ttl=64 time=3.60 ms (DUP!)
+        64 bytes from fe80::204:edff:fe4a:f7dd%eth0: icmp_seq=2 ttl=64 time=3.91 ms (DUP!)
+        64 bytes from fe80::ba27:ebff:fe3b:5d66%eth0: icmp_seq=2 ttl=64 time=4.21 ms (DUP!)
+        64 bytes from fe80::5054:ff:fe00:1b%eth0: icmp_seq=2 ttl=64 time=4.51 ms (DUP!)
+
+    ip -6 neigh
+
+        fe80::5054:ff:fe00:702 dev eth0 lladdr 52:54:00:00:07:02 STALE
+        2001:8b0:be72:d4ea:ba27:ebff:fe3b:5d66 dev eth0 lladdr b8:27:eb:3b:5d:66 STALE
+        fe80::5054:ff:fe00:1b dev eth0 lladdr 52:54:00:00:00:1b STALE
+        2001:8b0:be72:d4ea:a60:6eff:fe71:3c7c dev eth0 lladdr 08:60:6e:71:3c:7c DELAY
+        fe80::209:ffff:fec9:75fc dev wlan0 lladdr 00:09:ff:c9:75:fc STALE
+        fe80::ba27:ebff:fe3b:5d66 dev eth0 lladdr b8:27:eb:3b:5d:66 STALE
+        fe80::2a92:4aff:fe38:35a4 dev eth0 lladdr 28:92:4a:38:35:a4 STALE
+        fe80::b2ea:1fbe:f6da:c714 dev wlan0 lladdr b8:27:eb:8f:e0:49 STALE
+        fe80::a60:6eff:fe71:3a24 dev eth0 lladdr 08:60:6e:71:3a:24 STALE
+        fe80::a60:6eff:fe71:3c7c dev eth0 lladdr 08:60:6e:71:3c:7c STALE
+        fe80::204:edff:fe4a:f7dd dev eth0 lladdr 00:04:ed:4a:f7:dd router STALE
+        fe80::16da:e9ff:fe0c:7377 dev eth0 lladdr 14:da:e9:0c:73:77 STALE
+
+
+
+NOT YET
+
+    # Enable IPv6 via dnsmasq
+    vi /etc/dnsmasq.conf
+
+        #
+        # https://egustafson.github.io/post/ipv6-dhcpv6/
+
+        enable-ra
+        dhcp-option=option6:dns-server,[2001:8b0:be72:d4ea:ba27:ebff:fe3b:5d66]
+        dhcp-option=option6:dns-name,condasherus
+
+        dhcp-range=::100,::1ff,constructor:eth0
+
+
+
+
